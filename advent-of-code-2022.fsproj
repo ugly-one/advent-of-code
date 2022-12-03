@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <RootNamespace>advent_of_code_2022</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Day3_input.fs" />
+    <Compile Include="Day2_input.fs" />
+    <Compile Include="Day1_input.fs" />
+    <Compile Include="Day1.fs" />
+    <Compile Include="Day2.fs" />
+    <Compile Include="Day3.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+</Project>
