@@ -26,10 +26,10 @@ let areOverlapping_part2 (elf1, elf2) =
    else if (area2.Start <= area1.Start && area2.End >= area1.Start) then true
    else false
 
-let run =
+let run () =
     let results = Array.map areOverlapping input
     Array.filter id results |> Array.length
     
-let run_part2 =
+let run_part2 () =
     let results = Array.map areOverlapping_part2 input
     Array.filter id results |> Array.length

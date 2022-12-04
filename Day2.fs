@@ -40,5 +40,5 @@ let execute state item =
     let value = map2[item]
     state + value
 
-let run = 
+let run () = 
     Array.fold execute 0 input

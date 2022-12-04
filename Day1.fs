@@ -21,6 +21,6 @@ let check state item =
             then {High = state.High; Medium = state.Medium; Low = state.Current; Current = 0}
         else {state with Current = 0} 
 
-let run =
+let run () =
     let total = Array.fold check {Current = 0; High = 0; Medium = 0; Low = 0} input
     (total.High + total.Medium + total.Low)

@@ -27,7 +27,7 @@ let checkRucksack (items: string) =
     let priority = charToPriority character 
     priority
 
-let run = 
+let run () = 
     Array.fold (fun state item -> state + (checkRucksack item)) 0 input
     
 let lineToHashSet (line: string) =
@@ -47,6 +47,6 @@ let createGroups (lines: string[]) =
             let groupIndex = groupCount * 3;
             yield [|lines[groupIndex]; lines[groupIndex+1]; lines[groupIndex+2]|]
     }
-let run_part2 =
+let run_part2 () =
     let badges = Seq.map checkGroup (createGroups input)
     Seq.fold (fun state item -> state + (charToPriority item)) 0 badges
