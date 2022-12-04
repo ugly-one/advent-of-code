@@ -36,10 +36,9 @@ let map2 =
         (('C', 'Z'), 7);
     ]
 
-
 let execute state item = 
     let value = map2[item]
     state + value
 
 let run = 
-    Array.fold execute 0 input2
+    Array.fold execute 0 input

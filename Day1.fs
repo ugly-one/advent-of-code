@@ -2,12 +2,11 @@ module Day1
 
 open Day1_input
 
-type Bla = {
+type State = {
         Current : int
         High : int
         Medium : int
         Low : int
-
     }
 
 let check state item = 
@@ -22,8 +21,6 @@ let check state item =
             then {High = state.High; Medium = state.Medium; Low = state.Current; Current = 0}
         else {state with Current = 0} 
 
-let total = 
-    Array.fold (fun state item -> check state item) {Current = 0; High = 0; Medium = 0; Low = 0} realInput
-
-
-let run = (total.High + total.Medium + total.Low)
+let run =
+    let total = Array.fold check {Current = 0; High = 0; Medium = 0; Low = 0} input
+    (total.High + total.Medium + total.Low)

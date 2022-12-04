@@ -30,15 +30,6 @@ let checkRucksack (items: string) =
 let run = 
     Array.fold (fun state item -> state + (checkRucksack item)) 0 input
     
-let part2Input = [|
-    "vJrwpWtwJgWrhcsFMMfFFhFp";
-    "jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL";
-    "PmmdzqPrVvPwwTWBwg";
-    "wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn";
-    "ttgJtRGJQctTZtZT";
-    "CrZsJsPPZsGzwwsLwLmpwMDw";
-|]
-
 let lineToHashSet (line: string) =
     let hashSet = new HashSet<char>()
     let arrayInput = line.ToCharArray()
