@@ -5,6 +5,8 @@
     <RootNamespace>advent_of_code_2022</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Day5_input.fs" />
+    <Compile Include="Day5.fs" />
     <Compile Include="Day4_input.fs" />
     <Compile Include="Day3_input.fs" />
     <Compile Include="Day2_input.fs" />
