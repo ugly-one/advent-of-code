@@ -1,12 +1,6 @@
 ﻿module Day7
 open System.Text.RegularExpressions
 
-type Command = 
-    | Cd_root
-    | Cd_dir of dir : string
-    | Cd_up
-    | Ls
-
 type File = {
     Name: string
     Size: int
@@ -19,29 +13,6 @@ type Dir = {
     mutable Parent: option<Dir>
     mutable Size: int
 }
-
-type Listing = 
-    | File of File
-    | Dir of Dir
-
-let parseCommand line = 
-    match line with 
-    | "$ cd /" -> Cd_root
-    | "$ ls" -> Ls
-    | "$ cd .." -> Cd_up
-    | _ -> 
-        let dirMatch = Regex.Match(line, "\$ cd ([a-z]+)")
-        Cd_dir dirMatch.Groups[1].Value
-
-let parseListing line = 
-    let fileMatch = Regex.Match(line, "([0-9]+) ([a-z.]+)")
-    if (fileMatch.Success) then 
-        let size = fileMatch.Groups[1].Value |> int
-        let name = fileMatch.Groups[2].Value
-        File { Name = name; Size = size}
-    else 
-        let dirMatch = Regex.Match(line, "dir (.*)")
-        Dir {Name = dirMatch.Groups[1].Value; SubDirs = Array.empty; Files = Array.empty; Parent = None; Size = 0}
 
 let rec calcualateSizes (dir: Dir) = 
     let filesSize= Array.fold (fun state (file:File) -> file.Size + state) 0 dir.Files
@@ -58,11 +29,9 @@ let rec findSmallDirs (dir: Dir) =
 
 let rec findbiggest size (dir: Dir) = 
     let mutable biggestDirs = Array.filter (fun dir -> dir.Size >= size) dir.SubDirs
-
     for dir in biggestDirs do 
         let biggestSubDirs = findbiggest size dir
         biggestDirs <- Array.append biggestSubDirs biggestDirs
-
     biggestDirs
 
 let generateDisk (input: array<string>) = 
@@ -70,25 +39,27 @@ let generateDisk (input: array<string>) =
     let mutable currentDir = root
     for line in input do 
         if (line[0] = '$') then 
-            let command = parseCommand line
-            match command with 
-            | Cd_root -> currentDir <- root
-            | Cd_up -> currentDir <- currentDir.Parent.Value
-            | Cd_dir name -> 
+            match line with 
+            | "$ cd /" -> currentDir <- root
+            | "$ cd .." -> currentDir <- currentDir.Parent.Value
+            | "$ ls" -> ()
+            | _ -> 
+                let dirMatch = Regex.Match(line, "\$ cd ([a-z]+)")
+                let name = dirMatch.Groups[1].Value
                 let dir = Array.find (fun d -> d.Name = name) currentDir.SubDirs
                 currentDir <- dir
-            | Ls -> ()
         else 
-            let listing = parseListing line
-            match listing with 
-            | File file -> 
+            let fileMatch = Regex.Match(line, "([0-9]+) ([a-z.]+)")
+            if (fileMatch.Success) then 
+                let file =  { Name = fileMatch.Groups[2].Value; Size = fileMatch.Groups[1].Value |> int}
                 let newFiles = Array.append currentDir.Files [|file|]
                 currentDir.Files <- newFiles
-            | Dir dir -> 
-                dir.Parent <- Some currentDir
+            else 
+                let dirMatch = Regex.Match(line, "dir (.*)")
+                let dir = {Name = dirMatch.Groups[1].Value; SubDirs = Array.empty; Files = Array.empty; Parent = None; Size = 0}
                 let newDirs = Array.append currentDir.SubDirs [|dir|]
+                dir.Parent <- Some currentDir
                 currentDir.SubDirs <- newDirs
-            ()
     root 
 
 let run () = 
