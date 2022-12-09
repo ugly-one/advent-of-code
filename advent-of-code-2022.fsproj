@@ -5,6 +5,21 @@
     <RootNamespace>advent_of_code_2022</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Day1\Day1_input.fs" />
+    <Compile Include="Day1\Day1.fs" />
+    <Compile Include="Day2\Day2_input.fs" />
+    <Compile Include="Day2\Day2.fs" />
+    <Compile Include="Day3\Day3_input.fs" />
+    <Compile Include="Day3\Day3.fs" />
+    <Compile Include="Day4\Day4_input.fs" />
+    <Compile Include="Day4\Day4.fs" />
+    <Compile Include="Day5\Day5_input.fs" />
+    <Compile Include="Day5\Day5.fs" />
+    <Compile Include="Day6\Day6.fs" />
+    <Compile Include="Day7\Day7_input.fs" />
+    <Compile Include="Day7\Day7.fs" />
+    <Compile Include="Day8\Day8_input.fs" />
+    <Compile Include="Day8\Day8.fs" />
     <Content Include="Day9\testInput2.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -14,21 +29,6 @@
     <Content Include="Day9\input.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Compile Include="Day1_input.fs" />
-    <Compile Include="Day2_input.fs" />
-    <Compile Include="Day3_input.fs" />
-    <Compile Include="Day4_input.fs" />
-    <Compile Include="Day5_input.fs" />
-    <Compile Include="Day7_input.fs" />
-    <Compile Include="Day8_input.fs" />
-    <Compile Include="Day1.fs" />
-    <Compile Include="Day2.fs" />
-    <Compile Include="Day3.fs" />
-    <Compile Include="Day4.fs" />
-    <Compile Include="Day5.fs" />
-    <Compile Include="Day6.fs" />
-    <Compile Include="Day7.fs" />
-    <Compile Include="Day8.fs" />
     <Compile Include="Day9\Day9.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

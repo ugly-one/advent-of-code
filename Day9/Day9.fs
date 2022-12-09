@@ -29,7 +29,7 @@ let print head (knots: array<Position>) =
     printfn "---------------------"
     printfn ""
 
-let move position direction = 
+let makeStep position direction = 
     match direction with 
     | "U" -> {position with Y = position.Y + 1}
     | "D" -> {position with Y = position.Y - 1}
@@ -58,7 +58,7 @@ let moveRope size moves =
         let direction = _match.Groups[1].Value
         let steps = _match.Groups[2].Value |> int
         for step in 1..steps do 
-            head <- move head direction
+            head <- makeStep head direction
             for knotIndex in 0..(knots.Length - 1) do
                 let knot = knots[knotIndex]
                 let knotTofollow = if knotIndex = 0 then head else knots[knotIndex-1]
@@ -72,4 +72,4 @@ let moveRope size moves =
 
 let run () = 
     let knotsCount = 9
-    moveRope knotsCount testInput2
+    moveRope knotsCount input
