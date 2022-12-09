@@ -1,4 +1,3 @@
-﻿
-open advent_of_code_2022
+﻿open advent_of_code_2022
 
-Day8.run2 () |> printfn "%d"
+Day9.run() |> printfn "%d"

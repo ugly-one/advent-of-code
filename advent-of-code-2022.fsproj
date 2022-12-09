@@ -1,10 +1,19 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>advent_of_code_2022</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="Day9\testInput2.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Day9\testInput.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Day9\input.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Compile Include="Day1_input.fs" />
     <Compile Include="Day2_input.fs" />
     <Compile Include="Day3_input.fs" />
@@ -20,6 +29,7 @@
     <Compile Include="Day6.fs" />
     <Compile Include="Day7.fs" />
     <Compile Include="Day8.fs" />
+    <Compile Include="Day9\Day9.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>
