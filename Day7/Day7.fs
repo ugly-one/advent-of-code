@@ -62,15 +62,15 @@ let generateDisk (input: array<string>) =
                 currentDir.SubDirs <- newDirs
     root 
 
-let run () = 
-    let root = generateDisk Day7_input.input
+let run1 input = 
+    let root = generateDisk input
     calcualateSizes root |> ignore
     let smallDirs = findSmallDirs root
     Array.fold (fun state dir -> state + dir.Size) 0 smallDirs
 
 
-let run2 () = 
-    let root = generateDisk Day7_input.input
+let run2 input = 
+    let root = generateDisk input
     calcualateSizes root |> ignore
     let sizeToDelete = root.Size - 40000000
     let biggest = findbiggest sizeToDelete root 

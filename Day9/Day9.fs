@@ -3,12 +3,6 @@
 open System.Text.RegularExpressions
 open System.Collections.Generic
 
-let readLines file = System.IO.File.ReadLines(file)
-let input = readLines "Day9/input.txt"
-let testInput = readLines "Day9/testInput.txt"
-let testInput2 = readLines "Day9/testInput2.txt"
-
-
 type Position = {
     X: int;
     Y: int
@@ -70,6 +64,10 @@ let moveRope size moves =
         //print head knots
     visitedPositions.Count
 
-let run () = 
+let run1 input = 
+    let knotsCount = 1
+    moveRope knotsCount input
+
+let run2 input = 
     let knotsCount = 9
     moveRope knotsCount input

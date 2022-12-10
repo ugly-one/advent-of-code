@@ -43,7 +43,7 @@ let onEachCycleAction_part1 (interestingCycles: Stack<int>) (result: List<(int*i
             true
         else true
     
-let run_part1 (input: array<string>) =
+let run1 (input: array<string>) =
     let result = new List<(int*int)>()
     let interestingCycles = interestingCycles ()
     let action = onEachCycleAction_part1 interestingCycles result
@@ -55,19 +55,20 @@ let onEachCycleAction_part2 (result: char[]) cycle register =
     if register - 1 = position || register = position || register + 1 = position then result[cycle-1] <- '#' else result[cycle-1] <- '.'
     if cycle = 240 then false else true
     
-let run_part2 (input: array<string>) =
+let run2 (input: array<string>) doNotPrint =
     let result = Array.init 240 (fun i -> ' ')
     let action = onEachCycleAction_part2 result
     run_private input action
-    for i in 0..239 do
-        printf "%c" result[i]
-        if (i + 1) % 40 = 0 
-        then
-            printfn ""
-        else ()
-    ()
+    if doNotPrint then () else 
+        for i in 0..239 do
+            printf "%c" result[i]
+            if (i + 1) % 40 = 0 
+            then
+                printfn ""
+            else ()
+        ()
     
 let test_part1 (input: array<string>) =
-    let result = run_part1 input
+    let result = run1 input
     printfn "%d" result
     if result = 12560 then true else failwith "something doesn't work"

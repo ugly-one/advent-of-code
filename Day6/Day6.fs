@@ -17,7 +17,7 @@ let rec check (stream: string) index =
     if (isUnique last4chars) then index
     else check stream[1..] (index+1)
     
-let run () =
+let run1 () =
     let result = check stream 0
     result + 4
 

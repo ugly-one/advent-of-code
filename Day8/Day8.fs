@@ -1,5 +1,7 @@
 module advent_of_code_2022.Day8
 
+open System.Diagnostics
+
 type Coordinate = {
     X: int
     Y: int
@@ -42,8 +44,8 @@ let hasOnlyLowerTreesInDirection (map: Map) (coordinate: Coordinate) (direction:
     let isHighest = Seq.fold (fun state coordinate -> if takeValue map coordinate >= coreValue then false else state) true direction
     isHighest
     
-let run () =
-    let map = toMap Day8_input.input
+let run1 input =
+    let map = toMap input
     let mutable counter = 0
     for x in 0 .. (map.ColumnsCount - 1) do
             for y in 0 .. (map.RowsCount - 1) do
@@ -78,8 +80,8 @@ let countVisibleTreesInDirection (map: Map) (coordinate: Coordinate) (direction:
             if (index >= array.Length) then keepLooking <- false else ()
         counter
         
-let run2 () =
-    let map = toMap Day8_input.input
+let run2 input =
+    let map = toMap input
     let mutable highestScore = 0
     for x in 0 .. (map.ColumnsCount - 1) do
             for y in 0 .. (map.RowsCount - 1) do
