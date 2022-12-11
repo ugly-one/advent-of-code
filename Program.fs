@@ -7,12 +7,17 @@ let readLines file = System.IO.File.ReadLines(file)
 let testInput = readLines "Day11/testInput.txt" |> Array.ofSeq
 let input = readLines "Day11/input.txt" |> Array.ofSeq
 
-let testResult = Day11.run testInput
-if testResult = 10605 then printfn "DONE" else failwith $"wrong result {testResult}" 
+let testResult = Day11.run1 testInput
+if testResult = 10605UL then printfn "DONE" else failwith $"wrong result {testResult}" 
 
-let result = Day11.run input
-if result = 57838 then printfn "DONE" else failwith $"wrong result {result}" 
+let result = Day11.run1 input
+if result = 57838UL then printfn "DONE" else failwith $"wrong result {result}" 
 
+let testResult_sub2 = Day11.run2 testInput 20
+if testResult_sub2 = 103UL * 99UL then printfn "DONE" else failwith $"wrong result {testResult_sub2}" 
+
+// let testResult2 = Day11.run2 testInput 10000
+// if testResult2 = 2713310158UL then printfn "DONE" else failwith $"wrong result {testResult2}" 
 //
 // let measure action label =
 //     let stopWatch = new Stopwatch()

@@ -1,5 +1,6 @@
 module Day11
 
+open System
 open System.Collections.Generic
 
 type MonkeyID = {
@@ -7,37 +8,38 @@ type MonkeyID = {
 }
 
 type WorryLevel = {
-    Value: int
+    Value: uint64
 }
 
 type Monkey = {
     Id: MonkeyID
-    Items: List<int>
+    Items: List<WorryLevel>
     Action: WorryLevel -> (MonkeyID * WorryLevel)
 }
 
-let operation sign (value1: int) value2 =
+let operation sign (value1: uint64) value2 =
     if sign = '*' then value1 * value2 else value1 + value2
 
 let bla sign operationValue worryLevel =
-    if operationValue = "old" then operation sign worryLevel worryLevel else operation sign (operationValue |> int) worryLevel
+    if operationValue = "old" then operation sign worryLevel worryLevel else operation sign (operationValue |> uint64) worryLevel
 
-let executeTurn operation testCondition trueCondition falseCondition worryLevel =
-    let newValue = ((float) (operation worryLevel.Value)) / 3.0 |> floor |> int
-    let nextMonkey = if newValue % testCondition = 0 then {Id = trueCondition} else {Id = falseCondition}
+let executeTurn operation testCondition trueCondition falseCondition action worryLevel =
+    let newWorryLevel = operation worryLevel.Value
+    let newValue = action newWorryLevel
+    let nextMonkey = if newValue % testCondition = 0UL then {Id = trueCondition} else {Id = falseCondition}
     (nextMonkey, {Value = newValue})
 
-let getMonkeys input =
+let getMonkeys input calmDown =
     let mutable monkeyIndex = 0
-    let mutable items = List<int>()
-    let mutable testCondition = 0
+    let mutable items = List<WorryLevel>()
+    let mutable testCondition = 0UL
     let mutable operation = (fun a -> a)
     let mutable trueCondition = 0
     let mutable falseCondition = 0
     let monkeys = new List<Monkey>()
     for line in input do
         if line = "" then
-            let action = executeTurn operation testCondition trueCondition falseCondition
+            let action = executeTurn operation testCondition trueCondition falseCondition calmDown
             let monkey = {Id = {Id = monkeyIndex}; Action = action; Items = items}
             monkeys.Add(monkey)
             monkeyIndex <- monkeyIndex + 1
@@ -45,11 +47,12 @@ let getMonkeys input =
             monkeyIndex <- line.Substring(7,1) |> int
         else if "  Starting items: " = line.Substring(0, 18) then
             let a = line.Substring(17).Split(',')
-            let b = Array.map (fun (s: string) -> s.TrimEnd() |> int) a
-            items <- new List<int>(b)
+            let b = Array.map (fun (s: string) -> s.TrimEnd() |> uint64) a
+            let c = Array.map (fun s -> {Value = s}) b
+            items <- new List<WorryLevel>(c)
         else if "  Test: divisible by " = line.Substring(0, 21) then
             let a = line.Substring(20)
-            testCondition <- a |> int
+            testCondition <- a |> uint64
         else if "  Operation: new = old " = line.Substring(0, 23) then
             let a = line.Substring(23).Split( )
             let sign = a[0]
@@ -61,38 +64,35 @@ let getMonkeys input =
         else if "    If false: throw to monkey " = line.Substring(0, 30) then
             let a = line.Substring(29)
             falseCondition <- a |> int
-    let action = executeTurn operation testCondition trueCondition falseCondition
+    let action = executeTurn operation testCondition trueCondition falseCondition calmDown
     let monkey = {Id = {Id = monkeyIndex}; Action = action; Items = items}
     monkeys.Add(monkey)
     monkeys
    
 let findMostActive activities =
-    let mutable mostActive = 0
-    let mutable secondMostActive = 0
-    
-    for activity in activities do
-        let value = activity
-        if value > mostActive then
-            secondMostActive <- mostActive
-            mostActive <- value
-        else if value> secondMostActive then
-            secondMostActive <- value
-        else ()        
-    mostActive * secondMostActive
-    
-
-let run (input: array<string>) =
-    let monkeys = getMonkeys input
+    Seq.sort activities |> Seq.rev |> Seq.take 2 |> Seq.fold (fun s i -> s*i) 1  |> uint64
+ 
+let run (input: array<string>) calmDown rounds =
+    let monkeys = getMonkeys input calmDown
     let activities = new Dictionary<MonkeyID, int>()
     for monkey in monkeys do
         activities.Add(monkey.Id, 0)
-    for i in 0..19 do
+    for i in 1..rounds do
         for monkey in monkeys do
             while monkey.Items.Count > 0 do 
                 let item = monkey.Items[0]
                 monkey.Items.RemoveAt(0)
                 activities[monkey.Id] <- activities[monkey.Id] + 1
-                let (nextMonkey, newWorryLevel) = monkey.Action {Value = item}
-                monkeys[nextMonkey.Id].Items.Add(newWorryLevel.Value)
+                let (nextMonkey, newWorryLevel) = monkey.Action item
+                monkeys[nextMonkey.Id].Items.Add(newWorryLevel)
     
     findMostActive activities.Values
+
+let run1 input =  
+    let calmDown newWorryLevel =
+        ((float) newWorryLevel) / 3.0 |> floor |> uint64
+    run input calmDown 20
+    
+let run2 input rounds =  
+    let calmDown newWorryLevel = newWorryLevel
+    run input calmDown rounds
