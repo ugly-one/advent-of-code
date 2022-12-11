@@ -50,9 +50,9 @@ let run1 input =
     for x in 0 .. (map.ColumnsCount - 1) do
             for y in 0 .. (map.RowsCount - 1) do
                 let coordinate = {X=x; Y=y}
-                let (up, right, down, left) = getDirections x y map
                 if (x = 0 || y = 0 || x = map.ColumnsCount - 1 || y = map.RowsCount - 1 ) then counter <- counter + 1
                 else 
+                    let (up, right, down, left) = getDirections x y map
                     let isHighestInUpDirection = hasOnlyLowerTreesInDirection map coordinate up
                     let isHighestInRightDirection = hasOnlyLowerTreesInDirection map coordinate right
                     let isHighestInDownDirection = hasOnlyLowerTreesInDirection map coordinate down

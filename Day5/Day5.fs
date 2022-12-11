@@ -55,8 +55,7 @@ let private moveMultipleCratesAtTheTime (stacks: array<SupplyStack>) (moves: arr
             let crate = temporaryStorage.Pop()
             toStack.Crates.Push(crate)
 
-let run2 () = 
-    let test = false
+let run2 test = 
     let size = if test then 3 else 9
     let positions = if test then Day5_input.testStartingPositions else Day5_input.startingPositions
     let moves = if test then Day5_input.testMoves else Day5_input.moves

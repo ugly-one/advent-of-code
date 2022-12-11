@@ -47,10 +47,11 @@ let moveRope size moves =
     let knots = Array.create size position
     let visitedPositions = new HashSet<Position>()
     visitedPositions.Add(knots[knots.Length-1]) |> ignore
-    for line in moves do 
-        let _match = Regex.Match(line, "([RULD]) (.*)")
-        let direction = _match.Groups[1].Value
-        let steps = _match.Groups[2].Value |> int
+    for (line: string) in moves do
+        let a = line.Split ' '
+        // let _match = Regex.Match(line, "([RULD]) (.*)")
+        let direction = a[0]
+        let steps = a[1] |> int
         for step in 1..steps do 
             head <- makeStep head direction
             for knotIndex in 0..(knots.Length - 1) do
