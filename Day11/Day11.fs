@@ -17,11 +17,11 @@ type Monkey = {
     Action: WorryLevel -> (MonkeyID * WorryLevel)
 }
 
-let operation sign (value1: uint64) value2 =
-    if sign = '*' then value1 * value2 else value1 + value2
-
-let bla sign operationValue worryLevel =
-    if operationValue = "old" then operation sign worryLevel worryLevel else operation sign (operationValue |> uint64) worryLevel
+let executeOperation sign operationValue (worryLevel) =
+    if operationValue = "old" && sign = '*' then  worryLevel * worryLevel
+    else if operationValue = "old" && sign = '+' then worryLevel + worryLevel
+    else if sign = '*' then (operationValue |> uint64) * worryLevel
+    else (operationValue |> uint64) + worryLevel
 
 let executeTurn operation testCondition trueCondition falseCondition action worryLevel =
     let newWorryLevel = operation worryLevel.Value
@@ -57,7 +57,7 @@ let getMonkeys input calmDown =
             let a = line.Substring(23).Split( )
             let sign = a[0]
             let operationValue = a[1]
-            operation <- bla sign[0] operationValue
+            operation <- executeOperation sign[0] operationValue
         else if "    If true: throw to monkey " = line.Substring(0, 29) then
             let a = line.Substring(28)
             trueCondition <- a |> int
