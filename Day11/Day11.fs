@@ -8,6 +8,7 @@ type MonkeyID = {
 }
 
 type WorryLevel = {
+    Part1: uint64[]
     Value: uint64
 }
 
@@ -17,17 +18,20 @@ type Monkey = {
     Action: WorryLevel -> (MonkeyID * WorryLevel)
 }
 
-let executeOperation sign operationValue (worryLevel) =
-    if operationValue = "old" && sign = '*' then  worryLevel * worryLevel
-    else if operationValue = "old" && sign = '+' then worryLevel + worryLevel
-    else if sign = '*' then (operationValue |> uint64) * worryLevel
-    else (operationValue |> uint64) + worryLevel
+let executeOperation sign operationValue (worryLevel: WorryLevel) =
+    if operationValue = "old" && sign = '*' then worryLevel
+    else if operationValue = "old" && sign = '+' then {Part1 = Array.append worryLevel.Part1 [|2UL|]; Value = worryLevel.Value * 2UL}
+    else if sign = '*' then {Part1 = Array.append worryLevel.Part1 [|operationValue |> uint64|]; Value = worryLevel.Value * (operationValue |> uint64)}
+    else {worryLevel with Value = worryLevel.Value + (operationValue |> uint64)}
 
+let check (worryLevel: WorryLevel) (testCondition: uint64) =
+    true // TODO
+    
 let executeTurn operation testCondition trueCondition falseCondition action worryLevel =
-    let newWorryLevel = operation worryLevel.Value
+    let newWorryLevel = operation worryLevel
     let newValue = action newWorryLevel
-    let nextMonkey = if newValue % testCondition = 0UL then {Id = trueCondition} else {Id = falseCondition}
-    (nextMonkey, {Value = newValue})
+    let nextMonkey = if check newValue testCondition then {Id = trueCondition} else {Id = falseCondition}
+    (nextMonkey, newValue)
 
 let getMonkeys input calmDown =
     let mutable monkeyIndex = 0
@@ -48,7 +52,7 @@ let getMonkeys input calmDown =
         else if "  Starting items: " = line.Substring(0, 18) then
             let a = line.Substring(17).Split(',')
             let b = Array.map (fun (s: string) -> s.TrimEnd() |> uint64) a
-            let c = Array.map (fun s -> {Value = s}) b
+            let c = Array.map (fun s -> {Value = s; Part1 = Array.Empty()}) b
             items <- new List<WorryLevel>(c)
         else if "  Test: divisible by " = line.Substring(0, 21) then
             let a = line.Substring(20)
@@ -90,7 +94,8 @@ let run (input: array<string>) calmDown rounds =
 
 let run1 input =  
     let calmDown newWorryLevel =
-        ((float) newWorryLevel) / 3.0 |> floor |> uint64
+        let value = ((float) newWorryLevel.Value) / 3.0 |> floor |> uint64
+        {Value = value; Part1 = Array.Empty()}
     run input calmDown 20
     
 let run2 input rounds =  
