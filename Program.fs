@@ -4,9 +4,14 @@ open advent_of_code_2022.Day10
 
 let readLines file = System.IO.File.ReadLines(file)
 
-let testInput = readLines "Day11/testInput.txt"
-let result = Day11.run testInput
-if result = 10605 then printfn "DONE" else failwith $"wrong result {result}" 
+let testInput = readLines "Day11/testInput.txt" |> Array.ofSeq
+let input = readLines "Day11/input.txt" |> Array.ofSeq
+
+let testResult = Day11.run testInput
+if testResult = 10605 then printfn "DONE" else failwith $"wrong result {testResult}" 
+
+let result = Day11.run input
+if result = 57838 then printfn "DONE" else failwith $"wrong result {result}" 
 
 //
 // let measure action label =
