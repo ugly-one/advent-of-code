@@ -17,6 +17,9 @@ type Map = {
     Height: int
 }
 
+let getCell map (x,y) =
+    map.Cells[x + y * map.Width]
+
 let getAdjacentCells (map: Map) cell =
     let x = cell.Position |> fst
     let y = cell.Position |> snd
@@ -26,7 +29,7 @@ let getAdjacentCells (map: Map) cell =
     let downY = y + 1
     let positions = [| (leftX, y); (x, upY); (rightX, y); (x, downY)|] 
                         |> Array.filter (fun (x,y) -> x >= 0 && x < map.Width && y >= 0 && y < map.Height)
-    Array.map (fun (x,y) -> (map.Cells[x + y * map.Width])) positions
+    Array.map (getCell map) positions
 
 let getMap (input: string[]) = 
     let mapWidth = input[0].Length
@@ -50,9 +53,6 @@ let getMap (input: string[]) =
 
             map[x + y * mapWidth] <- {Elevation = char |> charToHeight; DistanceToBest = distanceToBest; Position = (x, y)}
     ({Cells = map; Width = mapWidth; Height = input.Length}, lowestPositions, startingPosition, bestSignalPos)
-
-let getCell map (x,y) =
-    map.Cells[x + y * map.Width]
     
 let rec markDistance map cellToConsider previousCell =
     let adjacentCells = getAdjacentCells map cellToConsider |> Array.filter (fun cell -> cell.Position <> previousCell.Position)
