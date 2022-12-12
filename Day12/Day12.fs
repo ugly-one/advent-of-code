@@ -4,7 +4,7 @@ let charToHeight (char:char) =
     (char |> int) - 97
 
 type Cell = {
-    Height: int
+    Elevation: int
     DistanceToBest: int
 }
 
@@ -19,17 +19,15 @@ let getAdjacentCells (map: Map) (x, y) =
     let rightX = x + 1
     let upY = y - 1
     let downY = y + 1
-
-    [| (leftX, y); (x, upY); (rightX, y); (x, downY)|] 
-        |> Array.filter (fun (x,y) -> x >= 0 && x < map.Width && y >= 0 && y < map.Height)
-
-
+    let positions = [| (leftX, y); (x, upY); (rightX, y); (x, downY)|] 
+                        |> Array.filter (fun (x,y) -> x >= 0 && x < map.Width && y >= 0 && y < map.Height)
+    Array.map (fun (x,y) -> ((x,y), map.Cells[x + y * map.Width])) positions
 
 let getMap (input: string[]) = 
     let mapWidth = input[0].Length
     let mutable currentPos = (0,0)
     let mutable bestSignalPos = (0,0)
-    let map = Array.init (input.Length * mapWidth) (fun i -> {Height = -1; DistanceToBest = -1})
+    let map = Array.init (input.Length * mapWidth) (fun i -> {Elevation = -1; DistanceToBest = -1})
     for y in 0..(input.Length-1) do 
         let line = input[y]
         for x in 0..(mapWidth-1) do 
@@ -40,7 +38,7 @@ let getMap (input: string[]) =
             else if line[x] = 'E' then 
                 bestSignalPos <- (x, y) 
                 char <- 'z'
-            map[x + y * mapWidth] <- {Height = char |> charToHeight; DistanceToBest = -1}
+            map[x + y * mapWidth] <- {Elevation = char |> charToHeight; DistanceToBest = -1}
     ({Cells = map; Width = mapWidth; Height = input.Length}, currentPos, bestSignalPos)
 
 let run (input: string[]) = 
