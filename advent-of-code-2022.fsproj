@@ -44,6 +44,8 @@
     <Content Include="Day11\input.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Compile Include="inputReader.fs" />
+    <Compile Include="Performance.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>
