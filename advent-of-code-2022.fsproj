@@ -5,6 +5,7 @@
     <RootNamespace>advent_of_code_2022</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="inputReader.fs" />
     <Compile Include="Day1\Day1_input.fs" />
     <Compile Include="Day1\Day1.fs" />
     <Compile Include="Day2\Day2_input.fs" />
@@ -38,13 +39,13 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Compile Include="Day11\Day11.fs" />
+    <Compile Include="Day11\Day11_tests.fs" />
     <Content Include="Day11\testInput.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Day11\input.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Compile Include="inputReader.fs" />
     <Compile Include="Performance.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
