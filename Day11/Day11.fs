@@ -1,6 +1,5 @@
 module Day11
 
-open System
 open System.Collections.Generic
 
 type MonkeyID = {
@@ -8,7 +7,6 @@ type MonkeyID = {
 }
 
 type WorryLevel = {
-    Part1: uint64[]
     Value: uint64
 }
 
@@ -19,18 +17,15 @@ type Monkey = {
 }
 
 let executeOperation sign operationValue (worryLevel: WorryLevel) =
-    if operationValue = "old" && sign = '*' then worryLevel
-    else if operationValue = "old" && sign = '+' then {Part1 = Array.append worryLevel.Part1 [|2UL|]; Value = worryLevel.Value * 2UL}
-    else if sign = '*' then {Part1 = Array.append worryLevel.Part1 [|operationValue |> uint64|]; Value = worryLevel.Value * (operationValue |> uint64)}
+    if operationValue = "old" && sign = '*' then {Value = worryLevel.Value * worryLevel.Value }
+    else if operationValue = "old" && sign = '+' then {Value = worryLevel.Value + worryLevel.Value}
+    else if sign = '*' then {Value = worryLevel.Value * (operationValue |> uint64)}
     else {worryLevel with Value = worryLevel.Value + (operationValue |> uint64)}
 
-let check (worryLevel: WorryLevel) (testCondition: uint64) =
-    true // TODO
-    
-let executeTurn operation testCondition trueCondition falseCondition action worryLevel =
+let executeTurn operation calmDownOperation testCondition trueCondition falseCondition  worryLevel =
     let newWorryLevel = operation worryLevel
-    let newValue = action newWorryLevel
-    let nextMonkey = if check newValue testCondition then {Id = trueCondition} else {Id = falseCondition}
+    let newValue = calmDownOperation newWorryLevel
+    let nextMonkey = if newValue.Value % testCondition = 0UL then {Id = trueCondition} else {Id = falseCondition}
     (nextMonkey, newValue)
 
 let getMonkeys input calmDown =
@@ -43,16 +38,13 @@ let getMonkeys input calmDown =
     let monkeys = new List<Monkey>()
     for line in input do
         if line = "" then
-            let action = executeTurn operation testCondition trueCondition falseCondition calmDown
-            let monkey = {Id = {Id = monkeyIndex}; Action = action; Items = items}
-            monkeys.Add(monkey)
-            monkeyIndex <- monkeyIndex + 1
+            ()
         else if "Monkey" = line.Substring(0, 6) then
             monkeyIndex <- line.Substring(7,1) |> int
         else if "  Starting items: " = line.Substring(0, 18) then
             let a = line.Substring(17).Split(',')
             let b = Array.map (fun (s: string) -> s.TrimEnd() |> uint64) a
-            let c = Array.map (fun s -> {Value = s; Part1 = Array.Empty()}) b
+            let c = Array.map (fun s -> {Value = s}) b
             items <- new List<WorryLevel>(c)
         else if "  Test: divisible by " = line.Substring(0, 21) then
             let a = line.Substring(20)
@@ -68,9 +60,11 @@ let getMonkeys input calmDown =
         else if "    If false: throw to monkey " = line.Substring(0, 30) then
             let a = line.Substring(29)
             falseCondition <- a |> int
-    let action = executeTurn operation testCondition trueCondition falseCondition calmDown
-    let monkey = {Id = {Id = monkeyIndex}; Action = action; Items = items}
-    monkeys.Add(monkey)
+            // create monkey
+            let action = executeTurn operation calmDown testCondition trueCondition falseCondition 
+            let monkey = {Id = {Id = monkeyIndex}; Action = action; Items = items}
+            monkeys.Add(monkey)
+            monkeyIndex <- monkeyIndex + 1
     monkeys
    
 let findMostActive activities =
@@ -95,7 +89,7 @@ let run (input: array<string>) calmDown rounds =
 let run1 input =  
     let calmDown newWorryLevel =
         let value = ((float) newWorryLevel.Value) / 3.0 |> floor |> uint64
-        {Value = value; Part1 = Array.Empty()}
+        {Value = value}
     run input calmDown 20
     
 let run2 input rounds =  
