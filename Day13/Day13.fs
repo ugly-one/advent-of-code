@@ -1,9 +1,6 @@
 ﻿module Day13
 open System.Collections.Generic
 
-/// [1,1,3,1,1]
-///
-
 type Item = 
     | Number of int
     | Array of Item array
@@ -78,36 +75,20 @@ let rec areInWrongOrder (left: Item array) (right: Item array) =
                 decision <- areInWrongOrder [|Number l|] r
             | (Array l, Number r) -> 
                 decision <- areInWrongOrder l [|Number r|] 
-            if decision = WrongOrder then index <- left.Length else ()
-            index <- index + 1
 
-    decision
+            if decision <> Unknown then index <- left.Length else ()
+            index <- index + 1
+    if decision = Unknown && left.Length < right.Length then RightOrder else decision
     
 
 let part1 (input: string array) = 
-    //let expected = [|
-    //    true; true; false; true; false; true; false; false 
-    //|]
-
-    //let testCase = 1
-
-    //for i in (testCase - 1)*3 .. 3 .. ((testCase - 1)*3 + 2) do 
-    //    let (left, _) = input[i] |> parse
-    //    let (right, _) = input[i+1] |> parse
-
-    //    let goodOrder = areInWrongOrder left right |> not
-    //    printfn $"Expected: {expected[testCase-1]}. Got: {goodOrder}" 
-    //    ()
-
     let mutable sum = 0;
     for i in 0 .. 3 .. input.Length - 1 do 
         let (left, _) = input[i] |> parse
         let (right, _) = input[i+1] |> parse
-
         let decision = areInWrongOrder left right
         let goodOrder = if decision = RightOrder then true else false
         if goodOrder then sum <- sum + i / 3 + 1 else ()
-        //printfn $"{i/3 + 1} Expected: {expected[i/3]}. Got: {goodOrder}" 
         ()
     sum
 
@@ -121,9 +102,9 @@ let test_part1 () =
 
 let run_part1 () = 
     let result = inputReader.readLines "Day13/input.txt" |> Array.ofSeq |> part1
-    if ( result ) = 13 then printfn "OK" else printfn $"{result}: BAD BAD"
+    if ( result ) = 6076 then printfn "OK" else printfn $"{result}: BAD BAD"
 
-let run input = 
+let run () = 
     testcase ()
     test_part1 ()
     run_part1 ()
