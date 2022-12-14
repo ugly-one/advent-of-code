@@ -118,31 +118,14 @@ let part2 (input: string array) =
         if (items[i] = item6) then indexOf6 <- i + 1 else ()
     indexOf2 * indexOf6
 
-let testcase () = 
-    let result = inputReader.readLines "Day13/testCases.txt" |> Array.ofSeq |> part1
-    if ( result ) = 1 then printfn "OK" else printfn $"{result} BAD BAD"
-
-let test_part1 () = 
-    let result = inputReader.readLines "Day13/testInput.txt" |> Array.ofSeq |> part1
-    if ( result ) = 13 then printfn "OK" else printfn $"{result} BAD BAD"
-
-let test_part2 () = 
-    let result = inputReader.readLines "Day13/testInput.txt" |> Array.ofSeq |> part2
-    if ( result ) = 140 then printfn "OK" else printfn $"{result} BAD BAD"
-
-
-let run_part1 () = 
-    let result = inputReader.readLines "Day13/input.txt" |> Array.ofSeq |> part1
-    if ( result ) = 6076 then printfn "OK" else printfn $"{result}: BAD BAD"
-
-let run_part2 () = 
-    let result = inputReader.readLines "Day13/input.txt" |> Array.ofSeq |> part2
-    if ( result ) = 24805 then printfn "OK" else printfn $"{result}: BAD BAD"
+let testcase file expectedValue part = 
+    let result = inputReader.readLines file |> Array.ofSeq |> part
+    if result = expectedValue then printfn "OK" else printfn $"Wrong answer: {result}. expected {expectedValue}"
 
 let run () = 
-    testcase ()
-    test_part1 ()
-    run_part1 ()
-    test_part2 ()
-    run_part2 ()
+    testcase "Day13/testInput.txt" 13 part1
+    testcase "Day13/testCases.txt" 1 part1
+    testcase "Day13/input.txt" 6076 part1
+    testcase "Day13/testInput.txt" 140 part2
+    testcase "Day13/input.txt" 24805 part2
     ()
