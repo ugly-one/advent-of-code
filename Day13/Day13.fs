@@ -92,6 +92,32 @@ let part1 (input: string array) =
         ()
     sum
 
+let isBigger (left: Item array) (right: Item array) = 
+    let result = areInWrongOrder left right
+    if result = WrongOrder then 1 else -1
+
+let part2 (input: string array) = 
+    
+    let items = new List<Item array>()
+    for line in input do 
+        if (line = "") then () else
+            let (item, _) = line |> parse
+            items.Add(item)
+    
+    let item2 = [| Array [|Number 2|] |]
+    let item6 = [| Array [|Number 6|] |]
+    items.Add(item2)
+    items.Add(item6)
+
+    let comparer = Comparer.Create(fun a b -> isBigger a b)
+    items.Sort(comparer)
+    let mutable indexOf2 = 0
+    let mutable indexOf6 = 0
+    for i in 0 .. items.Count - 1 do 
+        if (items[i] = item2) then indexOf2 <- i + 1 else ()
+        if (items[i] = item6) then indexOf6 <- i + 1 else ()
+    indexOf2 * indexOf6
+
 let testcase () = 
     let result = inputReader.readLines "Day13/testCases.txt" |> Array.ofSeq |> part1
     if ( result ) = 1 then printfn "OK" else printfn $"{result} BAD BAD"
@@ -100,12 +126,23 @@ let test_part1 () =
     let result = inputReader.readLines "Day13/testInput.txt" |> Array.ofSeq |> part1
     if ( result ) = 13 then printfn "OK" else printfn $"{result} BAD BAD"
 
+let test_part2 () = 
+    let result = inputReader.readLines "Day13/testInput.txt" |> Array.ofSeq |> part2
+    if ( result ) = 140 then printfn "OK" else printfn $"{result} BAD BAD"
+
+
 let run_part1 () = 
     let result = inputReader.readLines "Day13/input.txt" |> Array.ofSeq |> part1
     if ( result ) = 6076 then printfn "OK" else printfn $"{result}: BAD BAD"
+
+let run_part2 () = 
+    let result = inputReader.readLines "Day13/input.txt" |> Array.ofSeq |> part2
+    if ( result ) = 24805 then printfn "OK" else printfn $"{result}: BAD BAD"
 
 let run () = 
     testcase ()
     test_part1 ()
     run_part1 ()
+    test_part2 ()
+    run_part2 ()
     ()

@@ -1,4 +1,4 @@
 ﻿open Day11_tests
 open inputReader
 
-Performance.run ()
+Day13.run ()
