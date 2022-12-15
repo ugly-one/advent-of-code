@@ -23,3 +23,6 @@ let run () =
     testPart2 4000 20858UL 20797UL
     testPart2 8000 41728UL 41606UL
     testPart2 9000 46945UL 46807UL
+    
+    let result = Day11.run2 input 10000
+    if result = 15050382231UL then printfn "DONE" else failwith $"wrong result {result}" 

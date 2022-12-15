@@ -70,7 +70,7 @@ let getMonkeys input calmDown =
     (monkeys, modulo)
    
 let findMostActive activities =
-    Seq.sort activities |> Seq.rev |> Seq.take 2 |> Seq.fold (fun s i -> s*i) 1  |> uint64
+    Seq.sort activities |> Seq.rev |> Seq.take 2 |> Seq.fold (fun s i -> (s |> uint64) * (i |>  uint64)) 1UL  
  
 let run (input: array<string>) calmDown rounds =
     let (monkeys, modulo) = getMonkeys input calmDown
