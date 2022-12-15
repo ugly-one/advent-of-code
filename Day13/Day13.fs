@@ -118,9 +118,13 @@ let part2 (input: string array) =
         if (items[i] = item6) then indexOf6 <- i + 1 else ()
     indexOf2 * indexOf6
 
-let testcase file expectedValue part = 
+let testcaseWithDescription file expectedValue part description = 
     let result = inputReader.readLines file |> Array.ofSeq |> part
-    if result = expectedValue then printfn "OK" else printfn $"Wrong answer: {result}. expected {expectedValue}"
+    if result = expectedValue then printfn "OK" else printfn $"{description} Wrong answer: {result}. expected {expectedValue}"
+
+let testcase file expectedValue part = 
+    testcaseWithDescription file expectedValue part ""
+
 
 let run () = 
     testcase "Day13/testInput.txt" 13 part1
