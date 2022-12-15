@@ -15,11 +15,17 @@ let measure action label =
 
 let run () =
 
-    let day11_input = readLines "Day11/input.txt" |> Array.ofSeq
-    Day11.run1 day11_input |> ignore
+    let day11_input = readLines "Day14/input.txt" |> Array.ofSeq
 
-    let a = measure (fun () -> Day11.run1 day11_input ) "day12_1"
-    let b = measure (fun () -> Day11.run1 day11_input ) "day12_1"
+    Day13.testcase "Day14/testInput.txt" 24 Day14.part1
+    Day13.testcase "Day14/input.txt" 737 Day14.part1
+
+    Day13.testcase "Day14/testInput.txt" 93 Day14.part2
+    Day13.testcase "Day14/input.txt" 28145 Day14.part2
+
+    let a = measure (fun () -> Day14.part1 day11_input ) "day14_1"
+    let b = measure (fun () -> Day14.part2 day11_input ) "day14_2"
+
 
     printf "%i  " a
     printf "%i" b
