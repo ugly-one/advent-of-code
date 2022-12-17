@@ -10,25 +10,21 @@ let measure action label =
      stopWatch.Start()
      let b = action ()
      let result = stopWatch.ElapsedMilliseconds
-     printfn $"%s{label}: %d{result}"
+     printfn $"%s{label}: %d{result} ms"
      b
 
 let run () =
 
-    let day11_input = readLines "Day14/input.txt" |> Array.ofSeq
+    let input = readLines "Day15/input.txt" |> Array.ofSeq
 
-    Day13.testcase "Day14/testInput.txt" 24 Day14.part1
-    Day13.testcase "Day14/input.txt" 737 Day14.part1
+    Day13.testcase "Day15/testInput.txt" 26 (Day15.part1 10)
+    Day13.testcase "Day15/testInput.txt" 56000011UL (Day15.part2 20)
 
-    Day13.testcase "Day14/testInput.txt" 93 Day14.part2
-    Day13.testcase "Day14/input.txt" 28145 Day14.part2
+    let a = measure (fun () -> Day15.part1 2000000 input ) "day15 part1"
+    let b = measure (fun () -> Day15.part2 4000000 input ) "day15 part2"
+    printfn "%i  " a
+    printfn "%i" b
 
-    let a = measure (fun () -> Day14.part1 day11_input ) "day14_1"
-    let b = measure (fun () -> Day14.part2 day11_input ) "day14_2"
-
-
-    printf "%i  " a
-    printf "%i" b
 
     //measure (fun () -> Day12.part2 ()) "day12_2"
 

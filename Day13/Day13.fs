@@ -125,7 +125,6 @@ let testcaseWithDescription file expectedValue part description =
 let testcase file expectedValue part = 
     testcaseWithDescription file expectedValue part ""
 
-
 let run () = 
     testcase "Day13/testInput.txt" 13 part1
     testcase "Day13/testCases.txt" 1 part1

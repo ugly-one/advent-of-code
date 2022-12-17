@@ -2,10 +2,14 @@
 
 open System.Text.RegularExpressions
 open System.Collections.Generic
-open System.Diagnostics
 type Position = {
     x : int
     y : int
+}
+
+type Sensor = {
+    Position: Position
+    Range: int
 }
 
 let parse line = 
@@ -79,38 +83,75 @@ let part1 row (input: string array)  =
     let (allPositionsOnRow, sensorsOnRow, beaconsOnRow) = getAllPositionsOnRow row sensorsAndBeacons
     for beaconOnRow in beaconsOnRow do 
         allPositionsOnRow.Remove(beaconOnRow) |> ignore
-    
     for sensorOnRow in sensorsOnRow do 
         allPositionsOnRow.Remove(sensorOnRow) |> ignore
-
     allPositionsOnRow.Count
 
+let getCircumferencePoints sensor radius boundary =
+    let points = new HashSet<Position>()
+    for xDistance in radius .. -1 .. 0 do
+        let yDistance = radius - xDistance
+        if sensor.x - xDistance < 0 || sensor.x + xDistance > boundary || sensor.y - yDistance < 0 || sensor.y + yDistance > boundary
+        then ()
+        else
+            points.Add({x = sensor.x - xDistance; y = sensor.y - yDistance}) |> ignore
+            points.Add({x = sensor.x + xDistance; y = sensor.y - yDistance}) |> ignore
+            points.Add({x = sensor.x + xDistance; y = sensor.y + yDistance}) |> ignore
+            points.Add({x = sensor.x - xDistance; y = sensor.y + yDistance}) |> ignore
+    points    
+
+let isWithinRange point sensor = 
+    let distance = calculateDistance point sensor.Position
+    distance <= sensor.Range
+    
+let scanCircumferencePoints index sensor (sensors: Sensor[]) boundary =
+    let circumferencePoints = getCircumferencePoints sensor.Position (sensor.Range + 1) boundary |> Array.ofSeq
+    
+    let mutable pointIndex = 0
+    let mutable frequency = 0UL
+    while pointIndex < circumferencePoints.Length do 
+        let point = circumferencePoints[pointIndex]
+        
+        let mutable isWithinSensor = false
+        for currentSensorIndex in 0..(sensors.Length - 1) do
+            if currentSensorIndex = index then () else
+                let currentSensor = sensors[currentSensorIndex]
+                isWithinSensor <- isWithinSensor || (isWithinRange point currentSensor)
+        if not isWithinSensor then
+            frequency <- (point.x |> uint64) * 4000000UL + (point.y |> uint64)
+            pointIndex <- circumferencePoints.Length
+        pointIndex <- pointIndex + 1
+    frequency
+
 let part2 (size: int) (input: string array) = 
-    let sensorBeaconDistances = getSensorsBeaconDistances input
-
-    for (sensor, beacon, distance) in sensorBeaconDistances do 
-        let circumferencePoints = getCircumferencePoints sensor distance
-        0
-
-    size
-
+    let sensors = getSensorsBeaconDistances input |> Array.map (fun (sensor, beacon, distance) -> {Position = sensor; Range = distance})
+    let mutable sensorIndex = 0
+    let mutable frequency = 0UL
+    while sensorIndex < sensors.Length - 1 do
+        let sensor = sensors[sensorIndex]
+        frequency <- scanCircumferencePoints sensorIndex sensor sensors size
+        if frequency <> 0UL then sensorIndex <- sensors.Length else ()
+        sensorIndex <- sensorIndex + 1
+    frequency
 
 let run () = 
-    //let bla = crossWithRow {x = 8; y = 7} 9 10 |> Array.ofSeq
-    //if bla.Length = 13 then () else failwith "bla"
+    let bla = crossWithRow {x = 8; y = 7} 9 10 |> Array.ofSeq
+    if bla.Length = 13 then () else failwith "bla"
     
-    //let bla = crossWithRow {x = 0; y = 11} 3 10 |> Array.ofSeq
-    //if bla.Length = 5 then () else failwith "bla"
+    let bla = crossWithRow {x = 0; y = 11} 3 10 |> Array.ofSeq
+    if bla.Length = 5 then () else failwith "bla"
     
-    //let bla = crossWithRow {x = 12; y = 14} 4 10 |> Array.ofSeq
-    //if bla.Length = 1 then () else failwith "bla"
+    let bla = crossWithRow {x = 12; y = 14} 4 10 |> Array.ofSeq
+    if bla.Length = 1 then () else failwith "bla"
 
-    //let bla = crossWithRow {x = 2; y = 0} 10 10 |> Array.ofSeq
-    //if bla.Length = 1 then () else failwith "bla"
-    //Day13.testcaseWithDescription "Day15/testInput.txt" 26 (part1 10) "part1 test"
-    //Day13.testcaseWithDescription "Day15/input.txt" 4502208 (part1 2000000) "part1"
+    let bla = crossWithRow {x = 2; y = 0} 10 10 |> Array.ofSeq
+    if bla.Length = 1 then () else failwith "bla"
+    
+    let circumferencePoints = getCircumferencePoints {x = 3; y = 3} 2 20
+    if circumferencePoints.Count <> 8 then failwith "wrong points" else ()
 
-    //Day13.testcaseWithDescription "Day15/testInput.txt" -1 (part2 20) "part2 test"
-    Day13.testcaseWithDescription "Day15/input.txt" -1 (part2 4000000) "part2 test"
-
-    //Day13.testcaseWithDescription "Day15/input.txt" -1 part2 "part2"
+    Day13.testcaseWithDescription "Day15/testInput.txt" 26 (part1 10) "part1 test"
+    Day13.testcaseWithDescription "Day15/testInput.txt" 56000011UL (part2 20) "part2 test"
+    
+    Day13.testcaseWithDescription "Day15/input.txt" 4502208 (part1 2000000) "part1"
+    Day13.testcaseWithDescription "Day15/input.txt" 13784551204480UL (part2 4000000) "part2 test"
