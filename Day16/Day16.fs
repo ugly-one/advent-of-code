@@ -49,8 +49,8 @@ let rec findPath startValve targetValve (visitedValves: Valve[]) =
     else
         let mutable possiblePaths = Array.empty
         for connection in startValve.Connections do 
-            if contains connection visitedValves 
-            then () 
+            if contains connection visitedValves then () 
+            else if startValve = connection then () 
             else 
                 let path = findPath connection targetValve (Array.append visitedValves [| connection |])
                 if path.Length <> 0
@@ -67,13 +67,13 @@ let rec findPath startValve targetValve (visitedValves: Valve[]) =
             else ()
         shortestPath
 
-let rec bla valve targetValves : Valve[][] = 
+let rec findAllPaths valve targetValves : Valve[][] = 
     let mutable allPossibleCombinations = Array.init 0 (fun i -> Array.empty)
     for targetValve in targetValves do 
-        let path = findPath valve targetValve [| valve |]
+        let path = findPath valve targetValve [| |]
         // assume there is always a path
         let remainingTargetValves = Seq.filter (fun v -> v.Id <> targetValve.Id) targetValves
-        let subPaths = bla targetValve remainingTargetValves
+        let subPaths = findAllPaths targetValve remainingTargetValves
         if subPaths.Length = 0
         then 
             allPossibleCombinations <- Array.append allPossibleCombinations  [| path |]
@@ -89,7 +89,7 @@ let part1 (input: string[]) =
     let nonZeroValves = valves |> Seq.filter (fun valve -> valve.Rate <> 0)
     let targetValves = nonZeroValves
 
-    let a = bla startValve targetValves
+    let a = findAllPaths startValve targetValves
 
     a.Length |> ignore
     // algoritm 
