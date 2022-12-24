@@ -27,11 +27,22 @@ let rec findDistanceRec (target:Valve) destination (visitedValves: Valve array) 
         else if contains connection visitedValves then () // don't want to go through the same valve twice
         else if target.Id = connection.Id then () // don't want to go back from where we came from
         else 
-            let result = 999
-            if calculatedDistances.TryGetValue((connection.Id, destination.Id), ref result) 
-            then if isShorter result shortestDistance then shortestDistance <- Some result else ()
-            else if calculatedDistances.TryGetValue((destination.Id, connection.Id), ref result) 
-            then if isShorter result shortestDistance then shortestDistance <- Some result else ()
+            let key1 = (connection.Id, destination.Id)
+            let key2 = (connection.Id, destination.Id)
+
+            let found1, value1 = calculatedDistances.TryGetValue key1
+            let found2, value2 = calculatedDistances.TryGetValue key1
+
+            if found1
+            then 
+                if isShorter value1 shortestDistance 
+                then shortestDistance <- Some value1
+                else ()
+            else if found2
+            then 
+                if isShorter value2 shortestDistance 
+                then shortestDistance <- Some value2 
+                else ()
             else 
                 let distanceFromConnectionToDestination = findDistanceRec connection destination (addToArray visitedValves target) calculatedDistances
                 match distanceFromConnectionToDestination with 
