@@ -13,6 +13,10 @@ type Valve = {
     mutable Connections: Valve[]
 }
 
+type Path = {
+    Valves: Valve[]
+}
+
 let getOrCreateValve (valves: HashSet<Valve>) id = 
     let existingValve = valves |> Seq.tryFind (fun valve -> valve.Id = id)
     match existingValve with 
@@ -43,12 +47,12 @@ let parseValves input =
 let contains valve valves =
     valves |> Seq.tryFind (fun v -> v.Id = valve.Id) |> Option.isSome
 
-let rec findPath startValve targetValve (visitedValves: Valve[]) remainingTime = 
+let rec findPath startValve targetValve (visitedValves: Valve[]) remainingTime : Path = 
     if remainingTime = 0 
-    then Array.empty 
+    then {Valves = Array.empty} 
     else 
         if contains targetValve startValve.Connections 
-        then Array.append visitedValves [| targetValve |] 
+        then {Valves = Array.append visitedValves [| targetValve |]} 
         else
             let mutable possiblePaths = Array.empty
             for connection in startValve.Connections do 
@@ -58,16 +62,16 @@ let rec findPath startValve targetValve (visitedValves: Valve[]) remainingTime =
                     () 
                 else 
                     let path = findPath connection targetValve (Array.append visitedValves [| connection |]) (remainingTime - 1)
-                    if path.Length <> 0
+                    if path.Valves.Length <> 0
                     then possiblePaths <- Array.append possiblePaths [| path |]  
                     else () 
         
             let mutable shortestPathLength = 999
-            let mutable shortestPath = Array.empty
+            let mutable shortestPath = {Valves = Array.empty}
             for path in possiblePaths do 
-                if path.Length < shortestPathLength
+                if path.Valves.Length < shortestPathLength
                 then 
-                    shortestPathLength <- path.Length
+                    shortestPathLength <- path.Valves.Length
                     shortestPath <- path
                 else ()
             shortestPath
@@ -82,31 +86,40 @@ type PressureRelease = {
     RemainingTime: int
     Rate: int
     Valve: Valve
-    PathToTarget: Valve array
+    PathToTarget: Path
 }
 
-let rec findAllPaths valve targetValves remainingTime : (Valve array * PressureRelease array) array = 
-    let mutable allPossibleCombinations = Array.init 0 (fun i -> (Array.empty, Array.empty))
+let appendPath path1 path2 = 
+    {Valves = Array.append path1.Valves path2.Valves}
+
+let rec findAllPaths valve targetValves remainingTime : List<(Path * PressureRelease array)> = 
+    let mutable allPossibleCombinations = new List<(Path * PressureRelease array)>()
 
     if remainingTime = 0 
     then allPossibleCombinations 
     else 
         for targetValve in targetValves do 
             let path = findPath valve targetValve [| |] remainingTime
-            let remainingTime = remainingTime - path.Length - 1
-            if remainingTime < 0 then 
-                // cannot make this path
-                () 
+            if path.Valves.Length = 0 then ()
             else 
-                let remainingTargetValves = Seq.filter (fun v -> v.Id <> targetValve.Id) targetValves
-                let subPaths = findAllPaths targetValve remainingTargetValves remainingTime
-                let bla =  {RemainingTime = remainingTime; Rate = targetValve.Rate; Valve = targetValve; PathToTarget = path}
-                if subPaths.Length = 0
-                then 
-                    allPossibleCombinations <- Array.append allPossibleCombinations  [| (path, [| bla |] ) |]
+                let remainingTime = remainingTime - path.Valves.Length - 1
+                if remainingTime <= 0 then 
+                    // cannot make this path
+                    () 
                 else 
-                    let fullPaths = Array.map (fun (subPath, preassure) -> ((Array.append path subPath), Array.append preassure [| bla |] )) subPaths
-                    allPossibleCombinations <- Array.append allPossibleCombinations fullPaths
+                    let remainingTargetValves = Seq.filter (fun v -> v.Id <> targetValve.Id) targetValves
+                    let subPaths = findAllPaths targetValve remainingTargetValves remainingTime
+                    let pressureRelease =  {RemainingTime = remainingTime; Rate = targetValve.Rate; Valve = targetValve; PathToTarget = path}
+                    if subPaths.Count = 0
+                    then 
+                        allPossibleCombinations.Add((path, [| pressureRelease |] ))
+                       // printfn $"Adding path with length {path.Valves.Length}"
+                    else 
+                        let fullPaths = Seq.map (fun (subPath, preassure) -> (appendPath path subPath, Array.append preassure [| pressureRelease |] )) subPaths
+                        allPossibleCombinations.AddRange(fullPaths)
+                        //for (fullPath, preassureRelease) in fullPaths do 
+                         //   printfn $"Adding path with length {fullPath.Valves.Length}"
+                          //  ()
         allPossibleCombinations 
 
 let sumTotalRelease releases = 
@@ -119,19 +132,78 @@ let part1 (input: string[]) =
     let startValve = valves |> getStartValve
     let nonZeroValves = valves |> Seq.filter (fun valve -> valve.Rate <> 0)
     let targetValves = nonZeroValves
-
     printfn "finding all possible paths..."
     let allPossibleCombinations = findAllPaths startValve targetValves 30
     //let debugCombination = Array.filter (fun ((path : Valve[]), _) -> if path[0].Id = "DD" && path[1].Id = "CC" && path[2].Id = "BB"  && path[3].Id = "AA" && path[path.Length-1].Id = "CC" && path[path.Length-2].Id = "DD" && path[path.Length-3].Id = "EE"  && path[path.Length-4].Id = "FF" then true else false) allPossibleCombinations
-
     printfn "Finding max release...."
-
     let c = Seq.map (fun (path, preasure) -> sumTotalRelease preasure) allPossibleCombinations |> Seq.max
     c
 
-let run () =
-    let result = part1 (inputReader.readLines "Day16/testInput.txt" |> Array.ofSeq)
-    if (result <> 1651) then failwithf $"part1 test input failed/ {result}" else printfn "OK!"
+let rec generateAllPossibleSubCollections (collection: Valve array) subCollectionCount = 
+    if subCollectionCount = 0 
+    then Array.empty
+    else 
+        let result = new List<Valve array>()
+        let mutable index = 0
+        for item in collection do 
+            let collectionWithoutItem = Array.filter (fun i -> i.Id <> item.Id) collection
+            let remainingSubCollection = generateAllPossibleSubCollections collectionWithoutItem (subCollectionCount - 1)
 
-    let result = part1 (inputReader.readLines "Day16/input.txt" |> Array.ofSeq)
-    if (result <> 1651) then failwithf $"part1 normal input failed/ {result}" else printfn "OK!"
+            if (remainingSubCollection.Length = 0)
+            then 
+                result.Add([| item |])
+            else 
+                let subResult = Seq.map (fun sub -> Array.append sub [| item |] ) remainingSubCollection
+                result.AddRange(subResult)
+            ()
+        result.ToArray()
+
+let getRemainingPart collection subCollection = 
+    Array.filter (fun item -> contains item subCollection |> not) collection
+
+let splitTargetValves valves = 
+    let result = new List<(Valve array * Valve array)>()
+    for count in 7 .. (Seq.length valves / 2) do 
+        let splitPart1 = generateAllPossibleSubCollections valves count
+        let splitPart2 = Array.map (fun split -> (split, getRemainingPart valves split)) splitPart1
+        result.AddRange(splitPart2)
+    result
+
+let part2 (input: string[]) = 
+    // parse
+    printfn "parsing..."
+    let valves = parseValves input 
+    let startValve = valves |> getStartValve
+    let nonZeroValves = valves |> Seq.filter (fun valve -> valve.Rate <> 0)
+    let targetValves = nonZeroValves |> Array.ofSeq
+
+    let mutable ourMaxPressure = 0
+
+    let splitTargetValves = splitTargetValves targetValves
+
+    for (mine, elephants) in splitTargetValves do 
+        printfn $"finding all possible paths... I have {Seq.length mine} valves, elephant has {Seq.length elephants}"
+        let allPossibleMineCombinations = findAllPaths startValve mine 26
+        let allPossibleElephantsCombinations = findAllPaths startValve elephants 26
+
+        //let debugCombination = Array.filter (fun ((path : Valve[]), _) -> if path[0].Id = "DD" && path[1].Id = "CC" && path[2].Id = "BB"  && path[3].Id = "AA" && path[path.Length-1].Id = "CC" && path[path.Length-2].Id = "DD" && path[path.Length-3].Id = "EE"  && path[path.Length-4].Id = "FF" then true else false) allPossibleCombinations
+        printfn "Finding max release...."
+        let mineMaxPressure = Seq.map (fun (path, preasure) -> sumTotalRelease preasure) allPossibleMineCombinations |> Seq.max
+        let elephantMaxPressure = Seq.map (fun (path, preasure) -> sumTotalRelease preasure) allPossibleElephantsCombinations |> Seq.max
+        let ourPressure = mineMaxPressure + elephantMaxPressure
+        if ourPressure > ourMaxPressure then ourMaxPressure <- ourPressure else ()
+    ourMaxPressure
+
+
+let run () =
+    //let result = part1 (inputReader.readLines "Day16/testInput.txt" |> Array.ofSeq)
+    //if (result <> 1651) then failwithf $"part1 test input failed/ {result}" else printfn "OK!"
+
+    //let result = part1 (inputReader.readLines "Day16/input.txt" |> Array.ofSeq)
+    //if (result <> 1986) then failwithf $"part1 normal input failed/ {result}" else printfn "OK!"
+
+    //let result = part2 (inputReader.readLines "Day16/testInput.txt" |> Array.ofSeq)
+    //if (result <> 1707) then failwithf $"part1 test input failed/ {result}" else printfn "OK!"
+
+    let result = part2 (inputReader.readLines "Day16/input.txt" |> Array.ofSeq)
+    if (result <> 0) then failwithf $"part1 normal input failed/ {result}" else printfn "OK!"
