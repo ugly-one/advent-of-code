@@ -27,7 +27,7 @@ let rec findDistanceRec (target:Valve) destination (visitedValves: Valve array) 
         else if contains connection visitedValves then () // don't want to go through the same valve twice
         else if target.Id = connection.Id then () // don't want to go back from where we came from
         else 
-            let result = -1
+            let result = 999
             if calculatedDistances.TryGetValue((connection.Id, destination.Id), ref result) 
             then if isShorter result shortestDistance then shortestDistance <- Some result else ()
             else if calculatedDistances.TryGetValue((destination.Id, connection.Id), ref result) 
@@ -47,21 +47,22 @@ let rec findDistanceRec (target:Valve) destination (visitedValves: Valve array) 
         else ()
     shortestDistance
 
-let findDistance target destination = 
-    let calculatedDistances = new Dictionary<(string * string), int>()
-    findDistanceRec target destination Array.empty calculatedDistances
+let findDistance target destination calculatedDistances = 
+    let distance = findDistanceRec target destination Array.empty calculatedDistances
+    distance
 
 
 let part1 (input: string[]) = 
     let valves = Day16.parseValves input
     let nonZeroValves = valves |> Seq.filter (fun valve -> valve.Rate <> 0) |> Array.ofSeq
 
+    let calculatedDistances = new Dictionary<(string * string), int>()
     for index in 0..nonZeroValves.Length-1 do 
         let valve = nonZeroValves[index]
 
         for subIndex in index+1..nonZeroValves.Length-1 do
             let nextValve = nonZeroValves[subIndex]
-            let distance = findDistance valve nextValve
+            let distance = findDistance valve nextValve calculatedDistances
             ()
             //printfn $"Distance from {valve.Id} to {nextValve.Id} = {distance}"
         ()
