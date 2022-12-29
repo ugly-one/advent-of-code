@@ -12,7 +12,7 @@ let isShorter distance maybeDistance =
         | Some distance2 -> 
             if distance < distance2 then true else false
 
-let rec findDistanceRec (target:Valve) destination (visitedValves: Valve array) (calculatedDistances: Dictionary<(string * string), int>) = 
+let rec findDistanceRec (target:Valve) (destination:Valve) (visitedValves: Valve array) (calculatedDistances: Dictionary<(string * string), int>) = 
     
     let mutable index = 0
     let mutable foundPath = false
@@ -21,17 +21,17 @@ let rec findDistanceRec (target:Valve) destination (visitedValves: Valve array) 
     while (keepLooping) do 
 
         let connection = target.Connections[index]
-        if connection.Id = destination.Id then 
-            shortestDistance <- Array.length visitedValves + 1 |> Some
-            foundPath <- true
+        if target.Id = connection.Id then () // don't want to go back from where we came from
         else if contains connection visitedValves then () // don't want to go through the same valve twice
-        else if target.Id = connection.Id then () // don't want to go back from where we came from
+        else if connection.Id = destination.Id then 
+            shortestDistance <- 1 |> Some
+            foundPath <- true
         else 
             let key1 = (connection.Id, destination.Id)
-            let key2 = (connection.Id, destination.Id)
+            let key2 = (destination.Id, connection.Id)
 
             let found1, value1 = calculatedDistances.TryGetValue key1
-            let found2, value2 = calculatedDistances.TryGetValue key1
+            let found2, value2 = calculatedDistances.TryGetValue key2
 
             if found1
             then 
@@ -48,14 +48,25 @@ let rec findDistanceRec (target:Valve) destination (visitedValves: Valve array) 
                 match distanceFromConnectionToDestination with 
                     | None -> ()
                     | Some distance -> 
-                        calculatedDistances.Add((connection.Id, destination.Id), distance)
-                        if isShorter distance shortestDistance then shortestDistance <- Some distance else ()
+                        let newDistance = distance + 1
+                        if isShorter newDistance shortestDistance 
+                        then shortestDistance <- Some newDistance 
+                        else ()
             ()
 
         index <- index + 1
         if index = target.Connections.Length then keepLooping <- false
         else if foundPath then keepLooping <- false 
         else ()
+
+    if shortestDistance.IsSome then 
+        //printfn $"{target.Id} -> {destination.Id} = {shortestDistance.Value}"
+        calculatedDistances[(target.Id, destination.Id)] <- shortestDistance.Value
+        ()
+    else
+        //printfn $"{target.Id} -> {destination.Id} = No route"
+        ()
+    
     shortestDistance
 
 let findDistance target destination calculatedDistances = 
@@ -73,9 +84,10 @@ let part1 (input: string[]) =
 
         for subIndex in index+1..nonZeroValves.Length-1 do
             let nextValve = nonZeroValves[subIndex]
+            //printfn $"MAIN LOOP Calculating distance from {valve.Id} to {nextValve.Id}"
             let distance = findDistance valve nextValve calculatedDistances
             ()
-            //printfn $"Distance from {valve.Id} to {nextValve.Id} = {distance}"
+            //printfn $"MAIN LOOP Distance from {valve.Id} to {nextValve.Id} = {distance}"
         ()
     0
 
