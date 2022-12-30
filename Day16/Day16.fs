@@ -163,7 +163,7 @@ let getRemainingPart collection subCollection =
 
 let splitTargetValves valves = 
     let result = new List<(Valve array * Valve array)>()
-    for count in 7 .. (Seq.length valves / 2) do 
+    for count in (Seq.length valves / 2) - 1 .. (Seq.length valves / 2) do 
         let splitPart1 = generateAllPossibleSubCollections valves count
         let splitPart2 = Array.map (fun split -> (split, getRemainingPart valves split)) splitPart1
         result.AddRange(splitPart2)

@@ -3,3 +3,5 @@
 Day16_attempt2.part1RealInput ()
 
 Performance.measure (fun () -> Day16_attempt2.part1RealInput ()) "part 1 real input"
+
+Day16_attempt2.part2TestInput ()
