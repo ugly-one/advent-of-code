@@ -79,10 +79,15 @@ let rec calculateReleasedPressure startValve nonZeroValves calculatedDistances t
         if newTimeLeft >= 0
         then 
             let newPressure = pressure + nextValve.Rate * newTimeLeft
-            let nonZeroValvesWithoutNextValve = nonZeroValves |> Array.filter (fun v -> v.Id <> nextValve.Id)
-            let maxPressure = if newPressure > maxPressure then newPressure else maxPressure
-            let newMaxPressure = calculateReleasedPressure nextValve nonZeroValvesWithoutNextValve calculatedDistances newTimeLeft newPressure maxPressure
-            if newMaxPressure > a then a <- newMaxPressure else ()
+            if newPressure > a then a <- newPressure else ()
+
+            if (newTimeLeft < 3) 
+            then () 
+            else 
+                let nonZeroValvesWithoutNextValve = nonZeroValves |> Array.filter (fun v -> v.Id <> nextValve.Id)
+                let maxPressure = if newPressure > maxPressure then newPressure else maxPressure
+                let newMaxPressure = calculateReleasedPressure nextValve nonZeroValvesWithoutNextValve calculatedDistances newTimeLeft newPressure maxPressure
+                if newMaxPressure > a then a <- newMaxPressure else ()
         else
             ()
     a
