@@ -36,12 +36,12 @@ let rec findDistanceRec (target:Valve) (destination:Valve) (visitedValves: Valve
             if found1
             then 
                 if isShorter value1 shortestDistance 
-                then shortestDistance <- Some value1
+                then shortestDistance <- Some (value1 + 1)
                 else ()
             else if found2
             then 
                 if isShorter value2 shortestDistance 
-                then shortestDistance <- Some value2 
+                then shortestDistance <- Some (value2 + 1) 
                 else ()
             else 
                 let distanceFromConnectionToDestination = findDistanceRec connection destination (addToArray visitedValves target) calculatedDistances
@@ -73,23 +73,54 @@ let findDistance target destination calculatedDistances =
     let distance = findDistanceRec target destination Array.empty calculatedDistances
     distance
 
+type Result = {
+    mutable Pressure: int
+}
+
+let calculatePressure valves calculatedDistances = 
+
+   // printPath valves
+    let mutable timeLeft = 30
+    let mutable pressure = 0
+    for index in 0 .. 1 .. Array.length valves - 2 do 
+        let currentValve = valves[index]
+        let nextValve = valves[index + 1]
+        let Somedistance = findDistance currentValve nextValve calculatedDistances
+        let distance = Somedistance.Value
+        timeLeft <- timeLeft - distance - 1 
+        pressure <- pressure + nextValve.Rate * timeLeft
+        //printfn $"{currentValve.Id} -> {nextValve.Id} Distance: {distance}: total pressure: {pressure} . Rate: {nextValve.Rate} TimeLeft: {timeLeft}"
+
+    pressure
 
 let part1 (input: string[]) = 
     let valves = Day16.parseValves input
     let nonZeroValves = valves |> Seq.filter (fun valve -> valve.Rate <> 0) |> Array.ofSeq
-
+    let startValve = getStartValve valves
     let calculatedDistances = new Dictionary<(string * string), int>()
-    for index in 0..nonZeroValves.Length-1 do 
-        let valve = nonZeroValves[index]
+    let timeLeft = 30
 
-        for subIndex in index+1..nonZeroValves.Length-1 do
-            let nextValve = nonZeroValves[subIndex]
-            //printfn $"MAIN LOOP Calculating distance from {valve.Id} to {nextValve.Id}"
-            let distance = findDistance valve nextValve calculatedDistances
-            ()
-            //printfn $"MAIN LOOP Distance from {valve.Id} to {nextValve.Id} = {distance}"
-        ()
+    let allPermutations = generateAllPossibleSubCollections nonZeroValves (Array.length nonZeroValves)  //|> Array.filter (fun p -> p[0].Id = "DD" && p[1].Id = "BB" && p[2].Id = "JJ" && p[3].Id = "HH" && p[4].Id = "EE" && p[5].Id = "CC")
+    let mutable maxPressure = 0
+
+    for permutation in allPermutations do 
+        let releasedPressure = calculatePressure (Array.append [| startValve |] permutation) calculatedDistances
+        if releasedPressure > maxPressure then maxPressure <- releasedPressure else ()
+
+    printfn "%d" maxPressure
     0
+
+    //for index in 0..nonZeroValves.Length-1 do 
+    //    let valve = nonZeroValves[index]
+
+    //    for subIndex in index+1..nonZeroValves.Length-1 do
+    //        let nextValve = nonZeroValves[subIndex]
+    //        //printfn $"MAIN LOOP Calculating distance from {valve.Id} to {nextValve.Id}"
+    //        let distance = findDistance valve nextValve calculatedDistances
+    //        ()
+    //        //printfn $"MAIN LOOP Distance from {valve.Id} to {nextValve.Id} = {distance}"
+    //    ()
+    //0
 
 let part1TestInput () =
     part1 (inputReader.readLines "Day16/testInput.txt" |> Array.ofSeq)
