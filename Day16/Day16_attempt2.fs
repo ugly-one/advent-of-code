@@ -13,13 +13,11 @@ let isShorter distance maybeDistance =
             if distance < distance2 then true else false
 
 let rec findDistanceRec (target:Valve) (destination:Valve) (visitedValves: Valve array) (calculatedDistances: Dictionary<(string * string), int>) = 
-    
     let mutable index = 0
     let mutable foundPath = false
     let mutable keepLooping = true
     let mutable shortestDistance = None
     while (keepLooping) do 
-
         let connection = target.Connections[index]
         if target.Id = connection.Id then () // don't want to go back from where we came from
         else if contains connection visitedValves then () // don't want to go through the same valve twice
@@ -36,7 +34,8 @@ let rec findDistanceRec (target:Valve) (destination:Valve) (visitedValves: Valve
             if found1
             then 
                 if isShorter value1 shortestDistance 
-                then shortestDistance <- Some (value1 + 1)
+                then 
+                    shortestDistance <- Some (value1 + 1)
                 else ()
             else if found2
             then 
@@ -60,11 +59,9 @@ let rec findDistanceRec (target:Valve) (destination:Valve) (visitedValves: Valve
         else ()
 
     if shortestDistance.IsSome then 
-        //printfn $"{target.Id} -> {destination.Id} = {shortestDistance.Value}"
         calculatedDistances[(target.Id, destination.Id)] <- shortestDistance.Value
         ()
     else
-        //printfn $"{target.Id} -> {destination.Id} = No route"
         ()
     
     shortestDistance
@@ -73,31 +70,14 @@ let findDistance target destination calculatedDistances =
     let distance = findDistanceRec target destination Array.empty calculatedDistances
     distance
 
-type Result = {
-    mutable Pressure: int
-}
-
-let calculatePressure valves calculatedDistances = 
-    let mutable timeLeft = 30
-    let mutable pressure = 0
-    for index in 0 .. 1 .. Array.length valves - 2 do 
-        let currentValve = valves[index]
-        let nextValve = valves[index + 1]
-        let Somedistance = findDistance currentValve nextValve calculatedDistances
-        let distance = Somedistance.Value
-        timeLeft <- timeLeft - distance - 1 
-        pressure <- pressure + nextValve.Rate * timeLeft
-    pressure
-
 let rec calculateReleasedPressure startValve nonZeroValves calculatedDistances timeLeft pressure maxPressure = 
     let mutable a = maxPressure
 
     for nextValve in nonZeroValves do 
         let distance = findDistance startValve nextValve calculatedDistances
-        let canWeMakeIt = timeLeft - distance.Value - 1 >= 0
-        if canWeMakeIt
+        let newTimeLeft = timeLeft - distance.Value - 1
+        if newTimeLeft >= 0
         then 
-            let newTimeLeft = timeLeft - distance.Value - 1
             let newPressure = pressure + nextValve.Rate * newTimeLeft
             let nonZeroValvesWithoutNextValve = nonZeroValves |> Array.filter (fun v -> v.Id <> nextValve.Id)
             let maxPressure = if newPressure > maxPressure then newPressure else maxPressure
