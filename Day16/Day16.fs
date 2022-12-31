@@ -163,11 +163,35 @@ let getRemainingPart collection subCollection =
 
 let splitTargetValves valves = 
     let result = new List<(Valve array * Valve array)>()
-    for count in (Seq.length valves / 2) - 1 .. (Seq.length valves / 2) do 
+    for count in (Seq.length valves / 2) .. (Seq.length valves / 2) do 
+        printfn $"SPLITTING WITH COUNT {count}"
         let splitPart1 = generateAllPossibleSubCollections valves count
         let splitPart2 = Array.map (fun split -> (split, getRemainingPart valves split)) splitPart1
         result.AddRange(splitPart2)
     result
+
+let splitTargetValves_faster valves = 
+    let partSize = (valves |> Array.length ) / 2
+    let result = new List<(Valve array * Valve array)>()
+    let indexes = seq { 0 .. partSize - 1 } |> Array.ofSeq
+    let part = valves[.. partSize - 1]
+    let part2 = getRemainingPart valves part
+    result.Add((part, part2))
+    for index in 0 .. partSize - 1 do 
+        let mutable newIndex = indexes[index]
+        for count in 0 .. partSize - 1 do 
+            newIndex <- newIndex + 1
+            let temp_result = Array.copy part
+            while (Array.contains newIndex indexes) do 
+                newIndex <- newIndex + 1
+            if newIndex < Array.length valves then 
+                temp_result[index] <- valves[newIndex] 
+                let part2 = getRemainingPart valves temp_result
+                result.Add((temp_result, part2))
+            else ()
+
+    result
+
 
 let part2 (input: string[]) = 
     // parse

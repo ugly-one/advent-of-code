@@ -103,22 +103,16 @@ let part1 (input: string[]) =
     0
 
 let part2 (input: string[]) = 
-    // parse
-    printfn "parsing..."
     let valves = parseValves input 
     let startValve = valves |> getStartValve
     let nonZeroValves = valves |> Seq.filter (fun valve -> valve.Rate <> 0) |> Array.ofSeq
-    let calculatedDistances = new Dictionary<(string * string), int>()
-
     let mutable ourMaxPressure = 0
-
-    let splitTargetValves = splitTargetValves nonZeroValves
-
+    let splitTargetValves = splitTargetValves_faster nonZeroValves
     for (mine, elephants) in splitTargetValves do 
-        printfn $"finding max pressure. I have {Seq.length mine} valves, elephant has {Seq.length elephants}"
-        let myPressure = calculateReleasedPressure startValve mine calculatedDistances 26 0 0
-        let elephantsPressure = calculateReleasedPressure startValve elephants calculatedDistances 26 0 0
-        printfn $"my pressure: {myPressure}. elephant: {elephantsPressure}. total {myPressure + elephantsPressure}"
+        let calculatedDistances1 = new Dictionary<(string * string), int>()
+        let calculatedDistances2 = new Dictionary<(string * string), int>()
+        let myPressure = calculateReleasedPressure startValve mine calculatedDistances1 26 0 0
+        let elephantsPressure = calculateReleasedPressure startValve elephants calculatedDistances2 26 0 0
         let ourPressure = myPressure + elephantsPressure
         if ourPressure > ourMaxPressure then ourMaxPressure <- ourPressure else ()
     printfn "%d" ourMaxPressure
@@ -132,3 +126,6 @@ let part1RealInput () =
 
 let part2TestInput () =
     part2 (inputReader.readLines "Day16/testInput.txt" |> Array.ofSeq)
+
+let part2RealInput () =
+    part2 (inputReader.readLines "Day16/input.txt" |> Array.ofSeq)
