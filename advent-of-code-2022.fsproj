@@ -84,7 +84,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Compile Include="Day16\Day16.fs" />
-    <Compile Include="Day16\Day16_attempt2.fs" />
     <Content Include="Day17\testInput.txt" />
     <Content Include="Day17\input.txt" />
     <Compile Include="Performance.fs" />
