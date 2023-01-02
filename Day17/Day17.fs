@@ -50,54 +50,41 @@ let rock4 bottomLeftPos =
 let getHighestY positions = 
     Array.fold (fun highest position -> if position.Y > highest then position.Y else highest) 0 positions
 
-let getLowestPositions rock = 
-    rock |> Array.fold (fun (result: Option<Position> array) (position: Position) -> 
-        match result[position.X] with 
-        | None -> 
-            result[position.X] <- Some position
-            result
-        | Some resPos -> 
-            if position.Y < resPos.Y 
-            then 
-                result[position.X] <- Some position 
-                result 
-            else result) (Array.create 7 None)
+//let getLowestPositions rock = 
+//    rock |> Array.fold (fun (result: Option<Position> array) (position: Position) -> 
+//        match result[position.X] with 
+//        | None -> 
+//            result[position.X] <- Some position
+//            result
+//        | Some resPos -> 
+//            if position.Y < resPos.Y 
+//            then 
+//                result[position.X] <- Some position 
+//                result 
+//            else result) (Array.create 7 None)
 
-let getHighestPositions rock = 
-    rock |> Array.fold (fun (result: Option<Position> array) (position: Position) -> 
-        match result[position.X] with 
-        | None -> 
-            result[position.X] <- Some position
-            result
-        | Some resPos -> 
-            if position.Y > resPos.Y 
-            then 
-                result[position.X] <- Some position 
-                result 
-            else result) (Array.create 7 None)
-
+//let getHighestPositions rock = 
+//    rock |> Array.fold (fun (result: Option<Position> array) (position: Position) -> 
+//        match result[position.X] with 
+//        | None -> 
+//            result[position.X] <- Some position
+//            result
+//        | Some resPos -> 
+//            if position.Y > resPos.Y 
+//            then 
+//                result[position.X] <- Some position 
+//                result 
+//            else result) (Array.create 7 None)
 
 let checkCollision rock (ground: Position array) = 
-
-    let rockLowestPositions = getLowestPositions rock
     let mutable collide = false
-    for x in 0 .. 1 .. 6 do 
-        match rockLowestPositions[x] with
-        | Some lowestPos -> 
-            if lowestPos.Y - ground[x].Y < 1 then collide <- true else ()
-        | None -> ()
+    for position in rock do 
+        if Array.contains position ground then collide <- true else ()
     collide
 
 let addToGround (ground : Position array) rock = 
-    //rock |> Array.append ground
-    let highestPositions = getHighestPositions rock
-    for position in highestPositions do 
-        match position with 
-        | None -> ()
-        | Some pos -> 
-            ground[pos.X] <- pos
-        ()
-
+    rock |> Array.append ground
+    
 let getRock rockIndex position = 
     match rockIndex with 
     | 0 -> rock0 position
@@ -177,7 +164,7 @@ let private run (jetPattern: string) =
         let (newRock, moved) = moveDown rock ground
         
         if not moved then 
-            addToGround ground rock
+            ground <- addToGround ground rock
             // take a new rock
             rockToPick <- (rockToPick + 1) % rockTypesCount 
             rockPosition <- {X = 2; Y = getHighestY ground + 4}
