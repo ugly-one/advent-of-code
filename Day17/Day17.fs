@@ -1,5 +1,7 @@
 ﻿module Day17
 
+open System.Collections.Generic
+
 type Position = {
     X: int
     Y: int64
@@ -48,7 +50,7 @@ let rock4 bottomLeftPos =
     |]
 
 let getHighestY positions = 
-    Array.fold (fun highest position -> if position.Y > highest then position.Y else highest) 0L positions
+    Seq.fold (fun highest position -> if position.Y > highest then position.Y else highest) 0L positions
 
 //let getLowestPositions rock = 
 //    rock |> Array.fold (fun (result: Option<Position> array) (position: Position) -> 
@@ -76,14 +78,14 @@ let getHighestY positions =
 //                result 
 //            else result) (Array.create 7 None)
 
-let checkCollision rock (ground: Position array) = 
+let checkCollision rock (ground: List<Position>) = 
     let mutable collide = false
     for position in rock do 
-        if Array.contains position ground then collide <- true else ()
+        if Seq.contains position ground then collide <- true else ()
     collide
 
-let addToGround (ground : Position array) rock = 
-    rock |> Array.append ground
+let addToGround (ground : List<Position>) rock = 
+    ground.AddRange(rock)
     
 let getRock rockIndex position = 
     match rockIndex with 
@@ -142,7 +144,7 @@ let private run (jetPattern: string) (totalRocksCount: int64) =
     let mutable rockToPick = 0;
     let rockTypesCount = 5
 
-    let mutable ground = 
+    let ground = new List<Position>(
         [| 
             {X = 0; Y = 0}; 
             {X = 1; Y = 0;}
@@ -151,7 +153,7 @@ let private run (jetPattern: string) (totalRocksCount: int64) =
             {X = 4; Y = 0;}
             {X = 5; Y = 0;}
             {X = 6; Y = 0;}
-        |]
+        |])
 
     let mutable rocksCount = 1L
     let mutable rockPosition = {X = 2; Y = getHighestY ground + 4L}
@@ -164,7 +166,7 @@ let private run (jetPattern: string) (totalRocksCount: int64) =
         let (newRock, moved) = moveDown rock ground
         
         if not moved then 
-            ground <- addToGround ground rock
+            addToGround ground rock
             // take a new rock
             rockToPick <- (rockToPick + 1) % rockTypesCount 
             rockPosition <- {X = 2; Y = getHighestY ground + 4L}
