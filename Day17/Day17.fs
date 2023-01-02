@@ -144,8 +144,8 @@ let private run (jetPattern: string) (totalRocksCount: int64) =
 
     let mutable ground = 
         [| 
-            {X = 0; Y = 0L}; 
-            {X = 1; Y = 0L;}
+            {X = 0; Y = 0}; 
+            {X = 1; Y = 0;}
             {X = 2; Y = 0;}
             {X = 3; Y = 0;}
             {X = 4; Y = 0;}
