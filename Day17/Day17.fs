@@ -210,27 +210,18 @@ let private run (jetPattern: string) (totalRocksCount: int64) =
     let mutable rock = _rock
     let mutable isWithinChamber = _isWithinChamber
 
-    //let stopWatch = new Stopwatch()
-    //stopWatch.Start()
+    let stopWatch = new Stopwatch()
+    stopWatch.Start()
     while rocksCount <= totalRocksCount do 
         
         //print ground rock
         let wind = jetPattern[jetIndex]
-        //stopWatch.Restart()
         rock <- moveRockByWind rock ground wind isWithinChamber
-        //printfn "move by wind %d" stopWatch.ElapsedTicks
-        //stopWatch.Restart()
         let (newRock, moved) = moveDown rock ground
-        //printfn "move down %d" stopWatch.ElapsedTicks
         
         if not moved then 
-            //stopWatch.Restart()
             highestY <- addToGround ground rock highestY
-            
-            //printfn "Adding to ground %d" stopWatch.ElapsedTicks
 
-            // take a new rock
-            //stopWatch.Restart()
 
             rockToPick <- (rockToPick + 1) % rockTypesCount 
             rockPosition <- {X = 2; Y = highestY + 4L}
@@ -239,8 +230,11 @@ let private run (jetPattern: string) (totalRocksCount: int64) =
             isWithinChamber <- _isWithinChamber
             rocksCount <- rocksCount + 1L
 
-            //printfn "Other %d" stopWatch.ElapsedTicks
-
+            if rocksCount % 1_000_000L = 0 
+            then 
+                printfn "Milion rocks! %d %d" rocksCount stopWatch.ElapsedMilliseconds
+                stopWatch.Restart()
+            else ()
         else 
             rock <- newRock
         
