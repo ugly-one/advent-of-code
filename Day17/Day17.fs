@@ -1,53 +1,87 @@
 ﻿module Day17
 
 open System.Collections.Generic
+open System.Diagnostics;
 
 type Position = {
     X: int
     Y: int64
 }
 
+let isWithinChamber leftPosition rightPosition = 
+    if leftPosition.X < 0 then false 
+    else if rightPosition.X > 6 then false
+    else true
+
+let isRock0WithinChamber (rock: Position array) = 
+    isWithinChamber rock[0] rock[3]
+
 let rock0 bottomLeftPos = 
-    [|
-        bottomLeftPos;
-        {X = bottomLeftPos.X + 1; Y = bottomLeftPos.Y};
-        {X = bottomLeftPos.X + 2; Y = bottomLeftPos.Y}; 
-        {X = bottomLeftPos.X + 3; Y = bottomLeftPos.Y}; 
-    |]
+    let rock = 
+        [|
+            bottomLeftPos;
+            {X = bottomLeftPos.X + 1; Y = bottomLeftPos.Y};
+            {X = bottomLeftPos.X + 2; Y = bottomLeftPos.Y}; 
+            {X = bottomLeftPos.X + 3; Y = bottomLeftPos.Y}; 
+        |]
+
+    (rock, isRock0WithinChamber)
+
+let isRock1WithinChamber (rock: Position array) = 
+    isWithinChamber rock[1] rock[3]
 
 let rock1 bottomLeftPos = 
-    [|
-        {X = bottomLeftPos.X + 1; Y = bottomLeftPos.Y};
-        {X = bottomLeftPos.X;     Y = bottomLeftPos.Y + 1L};
-        {X = bottomLeftPos.X + 1; Y = bottomLeftPos.Y + 1L};
-        {X = bottomLeftPos.X + 2; Y = bottomLeftPos.Y + 1L};
-        {X = bottomLeftPos.X + 1; Y = bottomLeftPos.Y + 2L};
-    |]
+    let rock = 
+        [|
+            {X = bottomLeftPos.X + 1; Y = bottomLeftPos.Y};
+            {X = bottomLeftPos.X;     Y = bottomLeftPos.Y + 1L};
+            {X = bottomLeftPos.X + 1; Y = bottomLeftPos.Y + 1L};
+            {X = bottomLeftPos.X + 2; Y = bottomLeftPos.Y + 1L};
+            {X = bottomLeftPos.X + 1; Y = bottomLeftPos.Y + 2L};
+        |]
+    (rock, isRock1WithinChamber)
+    
+let isRock2WithinChamber (rock: Position array) = 
+    isWithinChamber rock[0] rock[3]
 
 let rock2 bottomLeftPos = 
-    [|
-        bottomLeftPos
-        {X = bottomLeftPos.X + 1; Y = bottomLeftPos.Y};
-        {X = bottomLeftPos.X + 2; Y = bottomLeftPos.Y};
-        {X = bottomLeftPos.X + 2; Y = bottomLeftPos.Y + 1L};
-        {X = bottomLeftPos.X + 2; Y = bottomLeftPos.Y + 2L};
-    |]
+    let rock = 
+        [|
+            bottomLeftPos
+            {X = bottomLeftPos.X + 1; Y = bottomLeftPos.Y};
+            {X = bottomLeftPos.X + 2; Y = bottomLeftPos.Y};
+            {X = bottomLeftPos.X + 2; Y = bottomLeftPos.Y + 1L};
+            {X = bottomLeftPos.X + 2; Y = bottomLeftPos.Y + 2L};
+        |]
+    (rock, isRock2WithinChamber)
+
+
+let isRock3WithinChamber (rock: Position array) = 
+    isWithinChamber rock[0] rock[0]
 
 let rock3 bottomLeftPos = 
-    [|
-        bottomLeftPos
-        {X = bottomLeftPos.X; Y = bottomLeftPos.Y + 1L};
-        {X = bottomLeftPos.X; Y = bottomLeftPos.Y + 2L};
-        {X = bottomLeftPos.X; Y = bottomLeftPos.Y + 3L};
-    |]
+    let rock = 
+        [|
+            bottomLeftPos
+            {X = bottomLeftPos.X; Y = bottomLeftPos.Y + 1L};
+            {X = bottomLeftPos.X; Y = bottomLeftPos.Y + 2L};
+            {X = bottomLeftPos.X; Y = bottomLeftPos.Y + 3L};
+        |]
+    (rock, isRock3WithinChamber)
+
+
+let isRock4WithinChamber (rock: Position array) = 
+    isWithinChamber rock[0] rock[1]
 
 let rock4 bottomLeftPos = 
-    [|
-        bottomLeftPos
-        {X = bottomLeftPos.X + 1; Y = bottomLeftPos.Y};
-        {X = bottomLeftPos.X + 1; Y = bottomLeftPos.Y + 1L};
-        {X = bottomLeftPos.X;     Y = bottomLeftPos.Y + 1L};
-    |]
+    let rock = 
+        [|
+            bottomLeftPos
+            {X = bottomLeftPos.X + 1; Y = bottomLeftPos.Y};
+            {X = bottomLeftPos.X + 1; Y = bottomLeftPos.Y + 1L};
+            {X = bottomLeftPos.X;     Y = bottomLeftPos.Y + 1L};
+        |]
+    (rock, isRock4WithinChamber)
 
 let getHighestY positions = 
     Seq.fold (fun highest position -> if position.Y > highest then position.Y else highest) 0L positions
@@ -78,15 +112,27 @@ let getHighestY positions =
 //                result 
 //            else result) (Array.create 7 None)
 
-let checkCollision rock (ground: List<Position>) = 
+let checkCollision rock (ground: Dictionary<int64,HashSet<Position>>) = 
     let mutable collide = false
     for position in rock do 
-        if Seq.contains position ground then collide <- true else ()
+        if ground.ContainsKey(position.Y) then 
+            let groundPart = ground[position.Y]
+            if groundPart |> Seq.contains position then collide <- true else ()
+        else ()
     collide
 
-let addToGround (ground : List<Position>) rock = 
-    ground.AddRange(rock)
-    
+let addToGround (ground : Dictionary<int64,HashSet<Position>>) rock highestY = 
+    let mutable newHighestY = highestY
+    for position in rock do 
+        if position.Y > newHighestY then newHighestY <- position.Y else ()
+        if ground.ContainsKey(position.Y) then 
+            ground[position.Y].Add(position) |> ignore
+        else 
+            let hashSet = new HashSet<Position>()
+            hashSet.Add(position) |> ignore
+            ground[position.Y] <- hashSet
+    newHighestY
+
 let getRock rockIndex position = 
     match rockIndex with 
     | 0 -> rock0 position
@@ -99,14 +145,14 @@ let getRock rockIndex position =
 let withinChamber rock = 
     rock |> Array.fold (fun withinChamber position -> if position.X >= 0 && position.X <= 6 then withinChamber else false) true
 
-let moveRockByWind rock ground windDirection = 
+let moveRockByWind rock ground windDirection isWithinChamber = 
     let rockAfterMove = 
         match windDirection with 
         | '>' -> rock |> Array.map (fun position -> {position with X = position.X + 1})
         | '<' -> rock |> Array.map (fun position -> {position with X = position.X - 1})
         | _ -> failwithf "unknown direction"
 
-    if withinChamber rockAfterMove then
+    if isWithinChamber rockAfterMove then
         if checkCollision rockAfterMove ground |> not then rockAfterMove else rock
     else rock
 
@@ -144,43 +190,64 @@ let private run (jetPattern: string) (totalRocksCount: int64) =
     let mutable rockToPick = 0;
     let rockTypesCount = 5
 
-    let ground = new List<Position>(
-        [| 
-            {X = 0; Y = 0}; 
-            {X = 1; Y = 0;}
-            {X = 2; Y = 0;}
-            {X = 3; Y = 0;}
-            {X = 4; Y = 0;}
-            {X = 5; Y = 0;}
-            {X = 6; Y = 0;}
-        |])
+    let ground = new Dictionary<int64, HashSet<Position>>()
+    let positions = 
+                [| 
+                    {X = 0; Y = 0}; 
+                    {X = 1; Y = 0;}
+                    {X = 2; Y = 0;}
+                    {X = 3; Y = 0;}
+                    {X = 4; Y = 0;}
+                    {X = 5; Y = 0;}
+                    {X = 6; Y = 0;}
+                |]
+    ground.Add(0, new HashSet<Position>(positions))
 
     let mutable rocksCount = 1L
-    let mutable rockPosition = {X = 2; Y = getHighestY ground + 4L}
-    let mutable rock = getRock rockToPick rockPosition
+    let mutable highestY = 0L
+    let mutable rockPosition = {X = 2; Y = highestY + 4L}
+    let (_rock, _isWithinChamber) = getRock rockToPick rockPosition
+    let mutable rock = _rock
+    let mutable isWithinChamber = _isWithinChamber
+
+    //let stopWatch = new Stopwatch()
+    //stopWatch.Start()
     while rocksCount <= totalRocksCount do 
         
         //print ground rock
         let wind = jetPattern[jetIndex]
-        rock <- moveRockByWind rock ground wind
+        //stopWatch.Restart()
+        rock <- moveRockByWind rock ground wind isWithinChamber
+        //printfn "move by wind %d" stopWatch.ElapsedTicks
+        //stopWatch.Restart()
         let (newRock, moved) = moveDown rock ground
+        //printfn "move down %d" stopWatch.ElapsedTicks
         
         if not moved then 
-            addToGround ground rock
+            //stopWatch.Restart()
+            highestY <- addToGround ground rock highestY
+            
+            //printfn "Adding to ground %d" stopWatch.ElapsedTicks
+
             // take a new rock
+            //stopWatch.Restart()
+
             rockToPick <- (rockToPick + 1) % rockTypesCount 
-            rockPosition <- {X = 2; Y = getHighestY ground + 4L}
-            rock <- getRock rockToPick rockPosition
+            rockPosition <- {X = 2; Y = highestY + 4L}
+            let (_rock, _isWithinChamber) = getRock rockToPick rockPosition
+            rock <- _rock
+            isWithinChamber <- _isWithinChamber
             rocksCount <- rocksCount + 1L
+
+            //printfn "Other %d" stopWatch.ElapsedTicks
+
         else 
             rock <- newRock
         
-
+            
         jetIndex <- (jetIndex + 1) % jetPattern.Length
 
-    let result = getHighestY ground
-
-    result 
+    highestY
 
 
 let run_part1_input () = 
@@ -201,3 +268,4 @@ let run_part2_test () =
 let run_part1 () = 
     run_part1_test ()
     run_part1_input ()
+
