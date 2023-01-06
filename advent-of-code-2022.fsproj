@@ -87,6 +87,8 @@
     <Compile Include="Day17\Day17.fs" />
     <Content Include="Day17\testInput.txt" />
     <Content Include="Day17\input.txt" />
+    <Compile Include="Day18\Day18_input.fs" />
+    <Compile Include="Day18\Day18.fs" />
     <Compile Include="Performance.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
