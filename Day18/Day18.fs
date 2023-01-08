@@ -73,23 +73,25 @@ let rec hasWayOut getSurfaceArea (points: 'a array) obstacles border (visitedPoi
     match points |> List.ofArray with 
     | [] -> continuation false
     | point::points -> 
-        printPoint point
-        //let (success, result) = cache.TryGetValue point
-        //if success then 
-        //    continuation result
-        //if Seq.contains point visitedPoints then 
-        //    continuation false
+        let isInCache, resultInCache = cache.TryGetValue point
+        if isInCache then 
+            if resultInCache then 
+                continuation true 
+            else 
+                let points = points |> Seq.filter (fun item -> visitedPoints.Contains item |> not) |> Array.ofSeq
+                visitedPoints.Add(point) |> ignore
+                hasWayOut getSurfaceArea (points) obstacles border visitedPoints cache continuation printPoint
         if Seq.contains point border then 
             continuation true
         else if Seq.contains point obstacles then 
-            continuation false
+            let points = points |> Seq.filter (fun item -> visitedPoints.Contains item |> not) |> Array.ofSeq
+            visitedPoints.Add(point) |> ignore
+            hasWayOut getSurfaceArea (points) obstacles border visitedPoints cache continuation printPoint
         else 
             visitedPoints.Add(point) |> ignore
             let neighborPoints = getSurfaceArea point
             let allPointsToCheck = Seq.append neighborPoints points |> Seq.filter (fun item -> visitedPoints.Contains item |> not) |> Array.ofSeq
-            let first = if allPointsToCheck |> Array.length > 0 then allPointsToCheck[..0] else Array.empty
-            let other = if allPointsToCheck |> Array.length > 1 then allPointsToCheck[1..] else Array.empty
-            hasWayOut getSurfaceArea first obstacles border visitedPoints cache (fun result -> hasWayOut getSurfaceArea other obstacles border visitedPoints cache (fun a -> (a || result) |> continuation ) printPoint) printPoint
+            hasWayOut getSurfaceArea allPointsToCheck obstacles border visitedPoints cache continuation printPoint
 
 type Test = 
     {
@@ -102,17 +104,12 @@ let findWayOut getSurfaceArea printPoint surface points border =
 
     seq{ 
         for point in surface do 
-            //printf $"checking... "
-            //printPoint point
             let result = {Value = false}
             let visitedPoints = new HashSet<'a>()
             hasWayOut getSurfaceArea [|point|] points border visitedPoints cache (fun a -> result.Value <- (result.Value || a)) printPoint
-            for visitedPoint in visitedPoints do 
-                cache.TryAdd(visitedPoint, result.Value) |> ignore
+            cache.TryAdd(point, result.Value) |> ignore
             (index |> decimal) * 100m / ((Seq.length surface) |> decimal) |> printfn "%f"
             index <- index + 1
-            printPoint point
-            printfn "result: %b" result.Value
             yield result
     }
 
@@ -142,13 +139,13 @@ let generate3DimentionalBorder min max =
     }
 
 let print1 x = 
-    printfn "%d" x
+    printf "%d" x
 
 let print2 (x, y) = 
-    printfn "(%d,%d)" x y
+    printf "(%d,%d)" x y
 
 let print3 (x, y, z) = 
-    printfn "(%d,%d,%d)" x y z
+    printf "(%d,%d,%d)" x y z
 
 let check expected result = 
     if result <> expected then printfn $"Wrong answer {result}. Expected: {expected}" else printfn "OK"
@@ -164,8 +161,7 @@ let runPart2TestCases () =
     let run1Dimention = run getSurfaceArea1Dimention
     let (surface, points) = run1Dimention cubes
     let result = findWayOut getSurfaceArea1Dimention print1 surface points [0;4] |> Seq.filter (fun i -> i.Value) |> Seq.length
-    let expected = 2
-    check expected result
+    check 2 result
 
     printfn "one dimention - test case 2. "
     let cubes = 
@@ -176,8 +172,7 @@ let runPart2TestCases () =
         |]
     let (surface, points) = run1Dimention cubes
     let result = findWayOut getSurfaceArea1Dimention print1 surface points [0;9] |> Seq.filter (fun i -> i.Value) |> Seq.length
-    let expected = 2
-    check expected result
+    check 2 result
 
 let runPart2TestCases2 () = 
     printfn "two dimentions - test case 1. "
@@ -192,8 +187,7 @@ let runPart2TestCases2 () =
     let (surface, points) = run2Dimentions cubes
     let border = generate2DimentionalBorder 0 4
     let result = findWayOut getSurfaceArea2Dimentions print2 surface points border |> Seq.filter (fun i -> i.Value) |> Seq.length
-    let expected = 10
-    check expected result
+    check 10 result
 
     printfn "two dimentions - test case 2. "
     let cubes = 
@@ -221,5 +215,13 @@ let runPart2TestCases3 () =
     let (surface, points) = run3Dimentions cubes
     let border = generate3DimentionalBorder 0 7
     let result = findWayOut a print3 surface points border |> Seq.filter (fun i -> i.Value) |> Seq.length
-    let expected = 58
-    check expected result
+    check 58 result
+
+    // TODO this is very slooooow - maybe I should use the cache (if it works :D) that is available
+    let cubes = Day18_input.input
+    let run3Dimentions = run getSurfaceArea3Dimentions
+    let a cube = getSurfaceArea3Dimentions cube
+    let (surface, points) = run3Dimentions cubes
+    let border = generate3DimentionalBorder -1 20
+    let result = findWayOut a print3 surface points border |> Seq.filter (fun i -> i.Value) |> Seq.length
+    check 2028 result
