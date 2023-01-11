@@ -15,7 +15,6 @@ type Resources = Storage
 type Robots = Storage
 type Blueprint = IDictionary<Resource, Map<Resource, int>>
 type Action = 
-    | Wait
     | BuildRobot of Resource
 
 let print (storage: Storage) = 
@@ -24,7 +23,7 @@ let print (storage: Storage) =
 
 let initialResources = Map [ (Resource.Ore, 0); (Resource.Clay, 0); (Resource.Obsidian, 0); (Resource.Geode, 0)]
 let initialRobotsColletion = Map [ (Robot.Ore, 1); (Robot.Clay, 0); (Robot.Obsidian, 0); (Robot.Geode, 0)]
-let possibleActions = [ Wait; BuildRobot Ore; BuildRobot Clay; BuildRobot Obsidian; BuildRobot Geode]
+let possibleActions = [ BuildRobot Ore; BuildRobot Clay; BuildRobot Obsidian; BuildRobot Geode]
 
 let produceAllResources (resources: Resources) (robots: Robots) : Resources = 
     robots |> Map.fold (fun resources robotType robotCount -> Map.add robotType (resources[robotType] + robotCount)  resources) resources
@@ -58,8 +57,6 @@ let rec executeMinutes (resources: Resources) (robots: Robots) (blueprint: Bluep
         let mutable newHighestCount = highestCount
         for action in possibleActions do 
             match action with 
-            | Wait -> 
-                 ()
             | BuildRobot robotType -> 
                 // check if we have robots producing resources to build this robotType
                 let costs = blueprint[robotType]
@@ -114,7 +111,6 @@ let execute input resourceToMaximize minutes =
     largestNumber
 
 let run () = 
-    let input = inputReader.readLines "Day19/testInput.txt" |> Array.ofSeq
     let testInput = "Blueprint 1: Each ore robot costs 4 ore. Each clay robot costs 2 ore. Each obsidian robot costs 3 ore and 14 clay. Each geode robot costs 2 ore and 7 obsidian."
     let largestNumber = execute testInput Clay 5
     if largestNumber <> 2 then failwithf $"Wrong answer {largestNumber}"
@@ -125,7 +121,13 @@ let run () =
     let largestNumber = execute testInput Geode 24
     if largestNumber <> 9 then failwithf $"Wrong answer {largestNumber}"
 
-    let testInput = "Blueprint 2: Each ore robot costs 2 ore. Each clay robot costs 3 ore. Each obsidian robot costs 3 ore and 8 clay. Each geode robot costs 3 ore and 12 obsidian."
-    let largestNumber = execute testInput Geode 24
-    if largestNumber <> 12 then failwithf $"Wrong answer {largestNumber}"
-    
+    //let testInput = "Blueprint 2: Each ore robot costs 2 ore. Each clay robot costs 3 ore. Each obsidian robot costs 3 ore and 8 clay. Each geode robot costs 3 ore and 12 obsidian."
+    //let largestNumber = execute testInput Geode 24
+    //if largestNumber <> 12 then failwithf $"Wrong answer {largestNumber}"
+
+    let input = inputReader.readLines "Day19/input.txt" |> Array.ofSeq
+    let mutable index = 1
+    for line in input do 
+         let largestNumber = execute line Geode 24
+         printfn "%d %d" index largestNumber
+         index <- index + 1
