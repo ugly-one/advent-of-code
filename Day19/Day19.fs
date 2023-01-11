@@ -137,9 +137,11 @@ let run () =
     let largestNumber = execute testInput Geode 24
     if largestNumber <> 9 then failwithf $"Wrong answer {largestNumber}"
 
-    //let testInput = "Blueprint 2: Each ore robot costs 2 ore. Each clay robot costs 3 ore. Each obsidian robot costs 3 ore and 8 clay. Each geode robot costs 3 ore and 12 obsidian."
-    //let largestNumber = execute testInput Geode 24
-    //if largestNumber <> 12 then failwithf $"Wrong answer {largestNumber}"
+    let testInput = "Blueprint 2: Each ore robot costs 2 ore. Each clay robot costs 3 ore. Each obsidian robot costs 3 ore and 8 clay. Each geode robot costs 3 ore and 12 obsidian."
+    let largestNumber = execute testInput Geode 24
+    if largestNumber <> 12 then failwithf $"Wrong answer {largestNumber}"
+
+    // part 1
 
     let input = inputReader.readLines "Day19/input.txt" |> Array.ofSeq
 
@@ -155,4 +157,16 @@ let run () =
          index <- index + 1
     
 
-    printfn "Result: %d. Time: %d" result stopwatch.ElapsedMilliseconds
+    printfn " Part 1: Result: %d. Time: %d" result stopwatch.ElapsedMilliseconds
+
+    // part 2 
+    let input = input |> Seq.take 3
+    stopwatch.Restart()
+
+    let mutable result = 1
+    for line in input do 
+         let largestNumber = execute line Geode 32
+         printfn "%d" largestNumber
+         result <- result * largestNumber
+    
+    printfn " Part 2: Result: %d. Time: %d" result stopwatch.ElapsedMilliseconds
