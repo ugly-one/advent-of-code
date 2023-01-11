@@ -13,7 +13,7 @@ type Robot = Resource
 type Storage = Map<Resource, int>
 type Resources = Storage
 type Robots = Storage
-type Blueprint = IDictionary<Resource, Map<Resource, int>>
+type Blueprint = Map<Resource, Map<Resource, int>>
 type Action = 
     | BuildRobot of Resource
 
@@ -41,7 +41,7 @@ let tryBuildRobot (resources: Resources) (robots: Robots) (blueprint: Blueprint)
     else
         (false, resources, robots)
 
-let rec executeMinutes (resources: Resources) (robots: Robots) (blueprint: Blueprint) minute highestCount resourceToMaximixe endMinute = 
+let rec executeMinutes (resources: Resources) (robots: Robots) (blueprint: Blueprint) (highestCosts: Storage) minute highestCount resourceToMaximixe endMinute = 
     if minute > endMinute then 
         let count = resources[resourceToMaximixe]
         if count > highestCount 
@@ -60,8 +60,13 @@ let rec executeMinutes (resources: Resources) (robots: Robots) (blueprint: Bluep
             | BuildRobot robotType -> 
                 // check if we have robots producing resources to build this robotType
                 let costs = blueprint[robotType]
-                let makeSenseToBuild = costs |> Map.fold (fun makeSense resourceType cost -> if cost = 0 then makeSense else makeSense && (robots[resourceType] > 0)) true
-                if makeSenseToBuild |> not then () else 
+                let produceRequiredResources = costs |> Map.fold (fun makeSense resourceType cost -> if cost = 0 then makeSense else makeSense && (robots[resourceType] > 0)) true
+
+                // check if we have already enough robots for the resource. We only need that many robots as the highest cost in the bluprint
+                let highestCostInBluprint = highestCosts[robotType]
+                let makeSenseTobuild = robots[robotType] < highestCostInBluprint || robotType = Geode // it always make sense to build Geode robot - sky is the limit 
+
+                if produceRequiredResources |> not || makeSenseTobuild |> not then () else 
                     let mutable continueLooping = true
                     let mutable resources = resources
                     let mutable robots = robots
@@ -73,7 +78,7 @@ let rec executeMinutes (resources: Resources) (robots: Robots) (blueprint: Bluep
                             resources <- produceAllResources newResources robots
                             robots <- newRobots
                             continueLooping <- false
-                            let count = executeMinutes resources robots blueprint (minutes + 1) highestCount resourceToMaximixe endMinute
+                            let count = executeMinutes resources robots blueprint highestCosts (minutes + 1) highestCount resourceToMaximixe endMinute
                             if count > newHighestCount then newHighestCount <- count else ()
                         else 
                             resources <- produceAllResources resources robots
@@ -86,6 +91,9 @@ let rec executeMinutes (resources: Resources) (robots: Robots) (blueprint: Bluep
                     
         newHighestCount
 
+let getHighestCost (blueprint: Blueprint) robotType : int = 
+    blueprint |> Map.fold (fun highest _ costs -> if costs[robotType] > highest then costs[robotType] else highest) 0
+
 let execute input resourceToMaximize minutes = 
     let something = Regex.Match(input, "Blueprint ([0-9]+): Each ore robot costs ([0-9]+) ore. Each clay robot costs ([0-9]+) ore. Each obsidian robot costs ([0-9]+) ore and ([0-9]+) clay. Each geode robot costs ([0-9]+) ore and ([0-9]+) obsidian.")
     let bluePrintNr = something.Groups[1].Value |> int
@@ -96,17 +104,25 @@ let execute input resourceToMaximize minutes =
     let geodeRobotOreCost = something.Groups[6].Value |> int
     let geodeRobotObsidianCost = something.Groups[7].Value |> int
 
-    let blueprint = dict [ 
+    let blueprint = Map [ 
         (Robot.Ore,  Map [(Resource.Ore, oreRobotCost); (Resource.Clay, 0); (Resource.Obsidian, 0); (Resource.Geode, 0)]);
         (Robot.Clay, Map [(Resource.Ore, clayRobotCost); (Resource.Clay, 0); (Resource.Obsidian, 0); (Resource.Geode, 0)]);
         (Robot.Obsidian, Map [(Resource.Ore, obsidianRobotOreCost); (Resource.Clay, obsidianRobotClayCost); (Resource.Obsidian, 0); (Resource.Geode, 0)]);
         (Robot.Geode, Map [(Resource.Ore, geodeRobotOreCost); (Resource.Clay, 0); (Resource.Obsidian, geodeRobotObsidianCost); (Resource.Geode, 0)]);
     ]
+
+    let highestCosts = Map [ 
+        (Robot.Ore, getHighestCost blueprint Robot.Ore);
+        (Robot.Clay, getHighestCost blueprint Robot.Clay);
+        (Robot.Obsidian, getHighestCost blueprint Robot.Obsidian);
+        (Robot.Geode, getHighestCost blueprint Robot.Geode);
+    ]
+    
     let resources = initialResources
     let robots = initialRobotsColletion
     let stopWatch = new Stopwatch()
     stopWatch.Start()
-    let largestNumber = executeMinutes resources robots blueprint 1 0 resourceToMaximize minutes
+    let largestNumber = executeMinutes resources robots blueprint highestCosts 1 0 resourceToMaximize minutes
     printfn "%d" stopWatch.ElapsedMilliseconds
     largestNumber
 
@@ -126,8 +142,17 @@ let run () =
     //if largestNumber <> 12 then failwithf $"Wrong answer {largestNumber}"
 
     let input = inputReader.readLines "Day19/input.txt" |> Array.ofSeq
+
+    let stopwatch = new Stopwatch()
+    stopwatch.Start()
+
+    let mutable result = 0
     let mutable index = 1
     for line in input do 
          let largestNumber = execute line Geode 24
-         printfn "%d %d" index largestNumber
+         //printfn "%d %d" index largestNumber
+         result <- result + index * largestNumber
          index <- index + 1
+    
+
+    printfn "Result: %d. Time: %d" result stopwatch.ElapsedMilliseconds
