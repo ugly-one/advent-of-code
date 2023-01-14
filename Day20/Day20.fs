@@ -6,14 +6,14 @@ type Item =
     {
         mutable PreviousItem: Item option
         mutable NextItem: Item option
-        Number: int
+        Number: int64
         OriginalPosition: int
     }
 
 let print itemPrep count = 
     let mutable itemToPrint = itemPrep
     for a in 1 .. count do 
-        printf "[%d] (%d,%d), " itemToPrint.Number itemToPrint.PreviousItem.Value.Number itemToPrint.NextItem.Value.Number
+        printf "%d, " itemToPrint.Number
         itemToPrint <- itemToPrint.NextItem.Value
     printfn ""
 
@@ -43,11 +43,14 @@ let parseInput input =
 
 let mix (lookupMap: Dictionary<int, Item>) = 
     for itemToMove in lookupMap do 
+        let forward = itemToMove.Value.Number > 0
         let steps = itemToMove.Value.Number
+        let steps = steps % ((lookupMap.Count |> int64) - 1L)
         let itemToMove = itemToMove.Value
 
-        if steps > 0 then 
-            for step in 1 .. steps do 
+        let steps = steps |> abs 
+        if forward then 
+            for step in 1L .. steps do 
                 let previousItem = itemToMove.PreviousItem.Value
                 let nextItem = itemToMove.NextItem.Value
                 let nextNextItem = nextItem.NextItem.Value
@@ -61,7 +64,7 @@ let mix (lookupMap: Dictionary<int, Item>) =
                 nextNextItem.PreviousItem <- Some itemToMove
                 itemToMove.NextItem <- Some nextNextItem
         else 
-            for step in steps .. 1 .. -1 do 
+            for step in 1L .. steps do 
                 let previousItem = itemToMove.PreviousItem.Value
                 let previousPreviousItem = previousItem.PreviousItem.Value
                 let nextItem = itemToMove.NextItem.Value
@@ -81,8 +84,8 @@ let findItem firstItem index =
         item <- item.NextItem.Value
     item
 
-let run_ input = 
-    let input = input |> Array.mapi (fun index item -> (int item, index))
+let runPart1 input = 
+    let input = input |> Array.mapi (fun index item -> (int64 item, index))
     let (lookupMap, indexOfZeroNumber) = parseInput input
 
     mix lookupMap |> ignore
@@ -99,8 +102,31 @@ let run_ input =
 
     printfn "Sum %d" (answer1000.Number + answer2000.Number + answer3000.Number)
 
+let runPart2 input = 
+    let decryptionKey = 811589153L
+
+    let input = input |> Array.mapi (fun index item -> ((int64 item) * decryptionKey, index))
+    let (lookupMap, indexOfZeroNumber) = parseInput input
+
+    for i in 1 .. 10 do 
+        mix lookupMap |> ignore
+
+    let modulo = lookupMap.Count
+    let _1000thItemindex = 1000 % modulo
+    let _2000thItemindex = 2000 % modulo
+    let _3000thItemindex = 3000 % modulo
+    let firstItem = lookupMap[indexOfZeroNumber]
+
+    let mutable answer1000 = findItem firstItem _1000thItemindex
+    let mutable answer2000 = findItem firstItem _2000thItemindex
+    let mutable answer3000 = findItem firstItem _3000thItemindex
+    printfn "%d %d %d" answer1000.Number answer2000.Number answer3000.Number
+    printfn "Sum %d" (answer1000.Number + answer2000.Number + answer3000.Number)
+
 let run () = 
-    let input = inputReader.readLines "Day20/testInput.txt" |> Array.ofSeq
-    run_ input
+    let testInput = inputReader.readLines "Day20/testInput.txt" |> Array.ofSeq
+    runPart1 testInput
     let input = inputReader.readLines "Day20/input.txt" |> Array.ofSeq
-    run_ input
+    runPart1 input
+    runPart2 testInput
+    runPart2 input
