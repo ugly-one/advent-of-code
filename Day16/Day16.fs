@@ -181,13 +181,13 @@ let part2 (input: string[]) =
     ourMaxPressure
 
 let part1TestInput () =
-    part1 (inputReader.readLines "Day16/testInput.txt" |> Array.ofSeq)
+    part1 (inputReader.readLines "Day16/testInput.txt")
 
 let part1RealInput () =
-    part1 (inputReader.readLines "Day16/input.txt" |> Array.ofSeq)
+    part1 (inputReader.readLines "Day16/input.txt")
 
 let part2TestInput () =
-    part2 (inputReader.readLines "Day16/testInput.txt" |> Array.ofSeq)
+    part2 (inputReader.readLines "Day16/testInput.txt")
 
 let part2RealInput () =
-    part2 (inputReader.readLines "Day16/input.txt" |> Array.ofSeq)
+    part2 (inputReader.readLines "Day16/input.txt")

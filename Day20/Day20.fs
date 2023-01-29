@@ -124,9 +124,9 @@ let runPart2 input =
     printfn "Sum %d" (answer1000.Number + answer2000.Number + answer3000.Number)
 
 let run () = 
-    let testInput = inputReader.readLines "Day20/testInput.txt" |> Array.ofSeq
+    let testInput = inputReader.readLines "Day20/testInput.txt"
     runPart1 testInput
-    let input = inputReader.readLines "Day20/input.txt" |> Array.ofSeq
+    let input = inputReader.readLines "Day20/input.txt"
     runPart1 input
     runPart2 testInput
     runPart2 input

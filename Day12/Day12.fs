@@ -86,17 +86,17 @@ let run2 (input: string[]) =
     shortest
 
 let part2 () =
-    let result = inputReader.readLines "Day12/input.txt" |> Array.ofSeq |> run2
+    let result = inputReader.readLines "Day12/input.txt" |> run2
     if result = 345 then printfn "OK" else failwith $"{result} is wrong"
 
 let test_part2 () =
-    let result = inputReader.readLines "Day12/testInput.txt" |> Array.ofSeq |> run2
+    let result = inputReader.readLines "Day12/testInput.txt" |> run2
     if result = 29 then printfn "OK" else failwith $"{result} is wrong"
     
 let part1 () =
-    let result = inputReader.readLines "Day12/input.txt" |> Array.ofSeq |> run
+    let result = inputReader.readLines "Day12/input.txt" |> run
     if result = 352 then printfn "OK" else failwith $"{result} is wrong"
     
 let test_part1 () = 
-    let result = inputReader.readLines "Day12/testInput.txt" |> Array.ofSeq |> run
+    let result = inputReader.readLines "Day12/testInput.txt" |> run
     if result = 31 then printfn "OK" else failwith $"{result} is wrong"

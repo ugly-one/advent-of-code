@@ -107,6 +107,13 @@
     <Content Include="Day21/testInput.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Compile Include="Day22/Day22.fs" />
+    <Content Include="Day22/testInput.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Day22/input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Compile Include="Performance.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

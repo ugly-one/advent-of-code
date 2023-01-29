@@ -15,7 +15,7 @@ let measure action label =
 
 let run () =
 
-    let input = readLines "Day15/input.txt" |> Array.ofSeq
+    let input = readLines "Day15/input.txt"
 
     Day13.testcase "Day15/testInput.txt" 26 (Day15.part1 10)
     Day13.testcase "Day15/testInput.txt" 56000011UL (Day15.part2 20)

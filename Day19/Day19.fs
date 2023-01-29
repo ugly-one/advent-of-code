@@ -143,7 +143,7 @@ let run () =
 
     // part 1
 
-    let input = inputReader.readLines "Day19/input.txt" |> Array.ofSeq
+    let input = inputReader.readLines "Day19/input.txt"
 
     let stopwatch = new Stopwatch()
     stopwatch.Start()

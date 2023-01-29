@@ -1,3 +1,3 @@
 ﻿module inputReader
 
-let readLines file = System.IO.File.ReadLines(file)
+let readLines file = System.IO.File.ReadLines(file) |> Array.ofSeq

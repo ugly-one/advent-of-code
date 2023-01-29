@@ -119,7 +119,7 @@ let part2 (input: string array) =
     indexOf2 * indexOf6
 
 let testcaseWithDescription file expectedValue part description = 
-    let result = inputReader.readLines file |> Array.ofSeq |> part
+    let result = inputReader.readLines file |> part
     if result = expectedValue then printfn "OK" else printfn $"{description} Wrong answer: {result}. expected {expectedValue}"
 
 let testcase file expectedValue part = 

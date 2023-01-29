@@ -3,8 +3,8 @@
 open inputReader
 
 let run () = 
-    let testInput = readLines "Day11/testInput.txt" |> Array.ofSeq
-    let input = readLines "Day11/input.txt" |> Array.ofSeq
+    let testInput = readLines "Day11/testInput.txt"
+    let input = readLines "Day11/input.txt"
 
     let testResult = Day11.run1 testInput
     if testResult = 10605UL then printfn "DONE" else failwith $"wrong result {testResult}" 

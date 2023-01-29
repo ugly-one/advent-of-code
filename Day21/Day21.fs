@@ -104,7 +104,7 @@ let runTest input expectedValue =
     if result <> expectedValue then failwith "wrong" else printfn "OK"
 
 let runTestInput () = 
-    let input = inputReader.readLines "Day21/testInput.txt" |> Array.ofSeq
+    let input = inputReader.readLines "Day21/testInput.txt"
     runTest input 152
 
 let runTinyTest () = 
@@ -127,7 +127,7 @@ let runPart1 () =
     runTinyTest()
     runTestInput()
 
-    let input = inputReader.readLines "Day21/input.txt" |> Array.ofSeq
+    let input = inputReader.readLines "Day21/input.txt"
     runTest input 72664227897438L
 
 let part2 input = 
@@ -160,11 +160,11 @@ let part2 input =
     humanNumber
 
 let testInputPart2 () = 
-    let input = inputReader.readLines "Day21/testInput.txt" |> Array.ofSeq
+    let input = inputReader.readLines "Day21/testInput.txt"
     part2 input
 
 let realInputPart2 () = 
-    let input = inputReader.readLines "Day21/input.txt" |> Array.ofSeq
+    let input = inputReader.readLines "Day21/input.txt"
     part2 input
 
 
