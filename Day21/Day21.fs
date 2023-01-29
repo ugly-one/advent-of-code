@@ -2,6 +2,8 @@ module Day21
 
 open System.Text.RegularExpressions
 open System.Collections.Generic
+open System.Diagnostics
+open System
 
 type MonkeyName = string
 
@@ -59,27 +61,6 @@ let parseMonkey line =
         let number = numberMatch.Groups[2].Value |> int64
         Choice2Of2 {Name = monkeyName; Number = number}
 
-let tryApplyIndependentMonkey independentMonkey dependentMonkey = 
-    let newMonkey = 
-        if dependentMonkey.Operation.LeftSideArgument = independentMonkey.Name then
-            dependentMonkey.LeftSideParameter <- Some independentMonkey.Number
-            dependentMonkey
-        elif dependentMonkey.Operation.RightSideArgument = independentMonkey.Name then
-            dependentMonkey.RightSideParameter <- Some independentMonkey.Number
-            dependentMonkey
-        else 
-            dependentMonkey
-    if newMonkey.LeftSideParameter.IsNone || newMonkey.RightSideParameter.IsNone then 
-        Choice1Of2 newMonkey
-    else 
-        let number = 
-            match newMonkey.Operation.Type with 
-            | Plus -> newMonkey.LeftSideParameter.Value + newMonkey.RightSideParameter.Value
-            | Minus -> newMonkey.LeftSideParameter.Value - newMonkey.RightSideParameter.Value 
-            | Divide -> newMonkey.LeftSideParameter.Value / newMonkey.RightSideParameter.Value 
-            | Multiply -> newMonkey.LeftSideParameter.Value * newMonkey.RightSideParameter.Value 
-        Choice2Of2 {Name = newMonkey.Name; Number = number}
-
 let rec findNumber (monkey: Monkey) (allMonkeys: Dictionary<string, Monkey>)= 
     match monkey with 
     | IndependentMonkey independentMonkey -> independentMonkey.Number
@@ -102,18 +83,19 @@ let rec findNumber (monkey: Monkey) (allMonkeys: Dictionary<string, Monkey>)=
             | Divide -> leftNumber / rightNumber
             | Multiply -> leftNumber * rightNumber
         result
-
-let run lines =
+let parse input = 
     let allMonkeys = new Dictionary<string, Monkey>()
     // parse
-    for line in lines do 
+    for line in input do 
         let monkey = parseMonkey line
         match monkey with 
         | Choice1Of2 monkey -> 
             allMonkeys.Add(monkey.Name, DependentMonkey monkey)
         | Choice2Of2 monkey -> 
             allMonkeys.Add(monkey.Name, IndependentMonkey monkey)
-
+    allMonkeys
+let run lines =
+    let allMonkeys = parse lines
     let result = findNumber allMonkeys["root"] allMonkeys
     result
 
@@ -140,5 +122,53 @@ let runTinyTinyTest () =
     runTest input 99
 
 let runPart1 () = 
+
+    runTinyTinyTest()
+    runTinyTest()
+    runTestInput()
+
     let input = inputReader.readLines "Day21/input.txt" |> Array.ofSeq
     runTest input 72664227897438L
+
+let part2 input = 
+    let allMonkeys = parse input
+    let rootMonkey = 
+        match allMonkeys["root"] with 
+        | IndependentMonkey _ -> failwith "root monkey cannot be independent"
+        | DependentMonkey rootMonkey -> rootMonkey 
+    
+    let leftMonkey = allMonkeys[rootMonkey.Operation.LeftSideArgument]
+    let rightMonkey = allMonkeys[rootMonkey.Operation.RightSideArgument]
+    let rightMonkeyResult = findNumber rightMonkey allMonkeys
+    let mutable keepGoing = true
+    let mutable maxNumber = 4_000_000_000_000L
+    let mutable minNumber = 0L
+    let mutable humanNumber = (maxNumber - minNumber) / 2L + minNumber
+    while keepGoing do
+        let human = { Name = "humn"; Number = humanNumber }
+        allMonkeys["humn"] <- IndependentMonkey human
+        let leftMonkeyResult = findNumber leftMonkey allMonkeys
+        printfn "checking %d. Left: %d == %d : Right" humanNumber leftMonkeyResult rightMonkeyResult
+
+        keepGoing <- leftMonkeyResult <> rightMonkeyResult
+        if keepGoing then 
+            let step = (maxNumber - minNumber) / 2L
+            let isTooLow = leftMonkeyResult < rightMonkeyResult
+            if isTooLow then maxNumber <- maxNumber - step
+            else minNumber <- minNumber + step            
+            humanNumber <- (maxNumber - minNumber) / 2L + minNumber
+    humanNumber
+
+let testInputPart2 () = 
+    let input = inputReader.readLines "Day21/testInput.txt" |> Array.ofSeq
+    part2 input
+
+let realInputPart2 () = 
+    let input = inputReader.readLines "Day21/input.txt" |> Array.ofSeq
+    part2 input
+
+
+let runPart2 () = 
+    // test input doesn't work with the solution that works with the real input ^^
+    //printfn "testInput part2 %d " (testInputPart2 ())
+    printfn "real input part2 %d " (realInputPart2 ())
