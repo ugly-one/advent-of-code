@@ -89,6 +89,19 @@ let parsePath (path: string) =
             | _ -> steps <- steps + (char |> string)
         if steps <> "" then yield Walk (steps |> int)
     }
+let rotate rotation direction = 
+    match direction with 
+    | Up -> if rotation = Clockwise then Right else Left
+    | Down -> if rotation = Clockwise then Left else Right
+    | Left -> if rotation = Clockwise then Up else Down
+    | Right -> if rotation = Clockwise then Down else Up
+
+let directionValue direction = 
+    match direction with 
+    | Up -> 3
+    | Down -> 1
+    | Left -> 2
+    | Right -> 0
 
 let parse (input: string[]) = 
     let map = input[0..input.Length - 3]
@@ -99,6 +112,16 @@ let parse (input: string[]) =
 let parseOnTestInput () = 
     let input = inputReader.readLines "Day22/testInput.txt"
     parse input
+
+let runPart1 input = 
+    let (map, startingPosition, path) = parse input
+    let mutable position = {X = startingPosition; Y = 0}
+    let mutable direction = Right
+    for movement in path do 
+        match movement with 
+        | Walk steps -> position <- move position direction steps map
+        | Rotate rotation -> direction <- rotate rotation direction
+    (position, direction)
 
 let testGoingDown () = 
     let (map, startPosition, _) = parseOnTestInput ()
@@ -127,30 +150,6 @@ let testWrappingAroundHorizontal() =
     let steps = 100
     let position = move {X = 5; Y = 7} direction steps map
     if position <> {X = 11; Y = 7} then failwith "did you just fall from the cliff?? (simple LEFT)" else printfn "Wrapping around (simple LEFT) OK"
-
-let rotate rotation direction = 
-    match direction with 
-    | Up -> if rotation = Clockwise then Right else Left
-    | Down -> if rotation = Clockwise then Left else Right
-    | Left -> if rotation = Clockwise then Up else Down
-    | Right -> if rotation = Clockwise then Down else Up
-
-let directionValue direction = 
-    match direction with 
-    | Up -> 3
-    | Down -> 1
-    | Left -> 2
-    | Right -> 0
-
-let runPart1 input = 
-    let (map, startingPosition, path) = parse input
-    let mutable position = {X = startingPosition; Y = 0}
-    let mutable direction = Right
-    for movement in path do 
-        match movement with 
-        | Walk steps -> position <- move position direction steps map
-        | Rotate rotation -> direction <- rotate rotation direction
-    (position, direction)
 
 let testInput () = 
     let input = inputReader.readLines "Day22/testInput.txt"
