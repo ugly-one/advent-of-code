@@ -18,6 +18,14 @@ type Map =
         Height: int
     }
 
+type Rotation = 
+    | CounterClockWise
+    | Clockwise
+
+type Movement = 
+    | Rotate of Rotation
+    | Walk of int
+
 let getOppositeDirection (direction: Direction) = 
     match direction with 
     | Up -> Down
@@ -47,26 +55,14 @@ let walk (pos: Position) (direction: Direction) (steps: int) (map: Map) =
     let mutable endPosition = pos
     for step in 1 .. 1 .. steps do 
         let newPosition = move endPosition direction map
-        if map.Content[newPosition.Y][newPosition.X] = '.' 
-            then 
-                endPosition <- newPosition
-        elif map.Content[newPosition.Y][newPosition.X] = '#'
-            then () // TODO stop the loop!
+        if map.Content[newPosition.Y][newPosition.X] = '.' then endPosition <- newPosition
+        elif map.Content[newPosition.Y][newPosition.X] = '#' then () // TODO stop the loop!
         else 
             let positionAfterWrappingAround = moveUntilMapsEnd newPosition (getOppositeDirection direction) map
             if map.Content[positionAfterWrappingAround.Y].[positionAfterWrappingAround.X] = '#' 
                 then () // TODO stop the loop
-                else
-                    endPosition <- positionAfterWrappingAround
+                else endPosition <- positionAfterWrappingAround
     endPosition
-
-type Rotation = 
-    | CounterClockWise
-    | Clockwise
-
-type Movement = 
-    | Rotate of Rotation
-    | Walk of int
 
 let parsePath (path: string) = 
     let mutable steps = ""
@@ -84,6 +80,7 @@ let parsePath (path: string) =
             | _ -> steps <- steps + (char |> string)
         if steps <> "" then yield Walk (steps |> int)
     }
+
 let rotate rotation direction = 
     match direction with 
     | Up -> if rotation = Clockwise then Right else Left
@@ -113,10 +110,6 @@ let parse (input: string[]) =
     let pathToTake = input[input.Length - 1] |> parsePath
     ({Content = map; Height = map.Length}, startPosition, pathToTake)
 
-let parseOnTestInput () = 
-    let input = inputReader.readLines "Day22/testInput.txt"
-    parse input
-
 let runPart1 input = 
     let (map, startingPosition, path) = parse input
     let mutable position = {X = startingPosition; Y = 0}
@@ -126,64 +119,3 @@ let runPart1 input =
         | Walk steps -> position <- walk position direction steps map
         | Rotate rotation -> direction <- rotate rotation direction
     (position, direction)
-
-let testGoingDown () = 
-    let (map, startPosition, _) = parseOnTestInput ()
-    let direction = Down
-    let steps = 1
-    let position = walk {X = startPosition; Y = 0} direction steps map
-    if position <> {X = 8; Y = 1} then failwith "you cannot go even one step down" else printfn "Going down one step OK"
-
-let testHittingWall () = 
-    let (map, startPosition, _) = parseOnTestInput ()
-    let direction = Right
-    let steps = 678
-    let position = walk {X = startPosition; Y = 0}  direction steps map
-    if position <> {X = 10; Y = 0} then failwith "did you miss the wall??" else printfn "Stopping on a wall OK"
-
-let testWrappingAroundVertical () = 
-    let (map, _, _) = parseOnTestInput ()
-    let direction = Up
-    let steps = 1
-    let position = walk {X = 5; Y = 4} direction steps map
-    if position <> {X = 5; Y = 7} then failwith "did you just fall from the cliff?? (simple UP)" else printfn "Wrapping around (simple UP) OK"
-
-let testWrappingAroundHorizontal() = 
-    let (map, _, _) = parseOnTestInput ()
-    let direction = Left
-    let steps = 100
-    let position = walk {X = 5; Y = 7} direction steps map
-    if position <> {X = 11; Y = 7} then failwith "did you just fall from the cliff?? (simple LEFT)" else printfn "Wrapping around (simple LEFT) OK"
-
-let testWrappingAroundVertical_2 () = 
-    let (map, startingPosition, _) = inputReader.readLines "Day22/testInput2.txt" |> parse 
-    let direction = Up
-    let steps = 1
-    let position = walk {X = startingPosition; Y = 0} direction steps map
-    if position <> {X = startingPosition; Y = 7} then failwith "did you just fall from the cliff?? (complex UP)" else printfn "Wrapping around (complex UP) OK"
-
-
-let testInput () = 
-    let input = inputReader.readLines "Day22/testInput.txt"
-    let (position, direction) = runPart1 input
-    if position <> {X = 7; Y = 5} then failwith "failed test input" else printfn "Test input OK"
-    let result = 1000 * (position.Y + 1) + 4 * (position.X + 1) + (directionValue direction)
-    if result <> 6032 then failwith "failed test input - final calculation" else printfn "Test input OK"
-    ()
-
-let testReal () = 
-    let input = inputReader.readLines "Day22/input.txt"
-    let (position, direction) = runPart1 input
-    let result = 1000 * (position.Y + 1) + 4 * (position.X + 1) + (directionValue direction)
-    if result <> 6032 then failwithf "failed real input - final calculation. %d" result else printfn "real input OK"
-    ()
-
-let part1() = 
-    testGoingDown ()
-    testHittingWall ()
-    testWrappingAroundVertical ()
-    testWrappingAroundHorizontal ()
-    testWrappingAroundVertical_2 ()
-    testInput ()
-    testReal ()
-    ()

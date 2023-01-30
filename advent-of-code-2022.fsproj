@@ -90,32 +90,33 @@
     <Compile Include="Day18\Day18_input.fs" />
     <Compile Include="Day18\Day18.fs" />
     <Content Include="Day19\input.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Compile Include="Day19\Day19.fs" />
     <Content Include="Day20\input.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Day20\testInput.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Compile Include="Day20\Day20.fs" />
-    <Compile Include="Day21/Day21.fs" />
-    <Content Include="Day21/input.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <Compile Include="Day21\Day21.fs" />
+    <Content Include="Day21\input.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Day21/testInput.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <Content Include="Day21\testInput.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Compile Include="Day22/Day22.fs" />
-    <Content Include="Day22/testInput.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <Compile Include="Day22\Day22.fs" />
+    <Compile Include="Day22\Day22_part1.fs" />
+    <Content Include="Day22\testInput.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Day22/testInput2.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <Content Include="Day22\testInput2.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Day22/input.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <Content Include="Day22\input.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Compile Include="Performance.fs" />
     <Compile Include="Program.fs" />
