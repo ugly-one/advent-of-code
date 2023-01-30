@@ -107,8 +107,9 @@
     <Content Include="Day21\testInput.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Compile Include="Day22\Day22.fs" />
-    <Compile Include="Day22\Day22_part1.fs" />
+    <Compile Include="Day22\Day22.fs"/>
+    <Compile Include="Day22\Day22_part1.fs"/>
+    <Compile Include="Day22\Day22_part2.fs"/>
     <Content Include="Day22\testInput.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

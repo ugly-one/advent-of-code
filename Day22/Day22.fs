@@ -26,6 +26,42 @@ type Movement =
     | Rotate of Rotation
     | Walk of int
 
+let parsePath (path: string) = 
+    let mutable steps = ""
+    seq {
+        for char in path do 
+            match char with 
+            | 'R' -> 
+                yield Walk (steps |> int)
+                yield Rotate Clockwise
+                steps <- ""
+            | 'L' ->
+                yield Walk (steps |> int)
+                yield Rotate CounterClockWise
+                steps <- ""
+            | _ -> steps <- steps + (char |> string)
+        if steps <> "" then yield Walk (steps |> int)
+    }
+
+let parse (input: string[]) = 
+    let map = input[0..input.Length - 3]
+    let mapWidth = map |> Array.fold (fun width row -> if row.Length > width then row.Length else width) 0
+    let extend (row: string) = 
+        if row.Length < mapWidth then 
+            let missingPartLength = mapWidth - row.Length
+            let missingPart = String.init missingPartLength (fun i -> " ")
+            row + missingPart
+        else 
+            row
+    let map = map |> Array.map (fun row -> extend row)
+    let startPosition = Seq.findIndex (fun char -> char = '.') map[0]
+    let pathToTake = input[input.Length - 1] |> parsePath
+    ({Content = map; Height = map.Length}, startPosition, pathToTake)
+
+let parseOnTestInput () = 
+    let input = inputReader.readLines "Day22/testInput.txt"
+    parse input
+
 let getOppositeDirection (direction: Direction) = 
     match direction with 
     | Up -> Down
@@ -64,23 +100,6 @@ let walk (pos: Position) (direction: Direction) (steps: int) (map: Map) =
                 else endPosition <- positionAfterWrappingAround
     endPosition
 
-let parsePath (path: string) = 
-    let mutable steps = ""
-    seq {
-        for char in path do 
-            match char with 
-            | 'R' -> 
-                yield Walk (steps |> int)
-                yield Rotate Clockwise
-                steps <- ""
-            | 'L' ->
-                yield Walk (steps |> int)
-                yield Rotate CounterClockWise
-                steps <- ""
-            | _ -> steps <- steps + (char |> string)
-        if steps <> "" then yield Walk (steps |> int)
-    }
-
 let rotate rotation direction = 
     match direction with 
     | Up -> if rotation = Clockwise then Right else Left
@@ -95,21 +114,6 @@ let directionValue direction =
     | Left -> 2
     | Right -> 0
 
-let parse (input: string[]) = 
-    let map = input[0..input.Length - 3]
-    let mapWidth = map |> Array.fold (fun width row -> if row.Length > width then row.Length else width) 0
-    let extend (row: string) = 
-        if row.Length < mapWidth then 
-            let missingPartLength = mapWidth - row.Length
-            let missingPart = String.init missingPartLength (fun i -> " ")
-            row + missingPart
-        else 
-            row
-    let map = map |> Array.map (fun row -> extend row)
-    let startPosition = Seq.findIndex (fun char -> char = '.') map[0]
-    let pathToTake = input[input.Length - 1] |> parsePath
-    ({Content = map; Height = map.Length}, startPosition, pathToTake)
-
 let runPart1 input = 
     let (map, startingPosition, path) = parse input
     let mutable position = {X = startingPosition; Y = 0}
@@ -118,4 +122,4 @@ let runPart1 input =
         match movement with 
         | Walk steps -> position <- walk position direction steps map
         | Rotate rotation -> direction <- rotate rotation direction
-    (position, direction)
+    (position, direction) 

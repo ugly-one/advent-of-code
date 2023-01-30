@@ -2,10 +2,6 @@ module Day22_part1
 
 open Day22
 
-let parseOnTestInput () = 
-    let input = inputReader.readLines "Day22/testInput.txt"
-    parse input
-
 let testGoingDown () = 
     let (map, startPosition, _) = parseOnTestInput ()
     let direction = Down
