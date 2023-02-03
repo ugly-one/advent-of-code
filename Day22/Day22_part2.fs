@@ -66,6 +66,13 @@ let getPosFromEnd (index: int) (wall: Wall) (edge: Direction) =
         | Down -> (wall.Info.LeftTopPosition.X + wall.Info.Size - 1 - index, wall.Info.LeftTopPosition.Y + wall.Info.Size - 1)
     {X = x; Y = y}
 
+let oppositeDirection (direction: Direction) = 
+    match direction with 
+    | Right -> Left
+    | Left -> Right
+    | Up -> Down
+    | Down -> Up
+
 let move (pos: Position) (direction: Direction) (currentWall: Wall) (allWalls: Wall[])= 
     let positionAfterSimpleMove = simpleMove pos direction
     let withinWall = isWithinWall positionAfterSimpleMove currentWall
@@ -81,35 +88,37 @@ let move (pos: Position) (direction: Direction) (currentWall: Wall) (allWalls: W
                 match wallDirection with 
                     | Up -> (getPosFromEnd indexOnCurrentWallEdge nextWall wallDirection, wallDirection, nextWall)
                     | Down -> (getPosFromStart indexOnCurrentWallEdge nextWall wallDirection, wallDirection, nextWall)
-                    | Left -> (getPosFromEnd indexOnCurrentWallEdge nextWall wallDirection, wallDirection, nextWall)
+                    | Left -> (getPosFromStart indexOnCurrentWallEdge nextWall wallDirection, wallDirection, nextWall)
                     | Right -> (getPosFromEnd indexOnCurrentWallEdge nextWall wallDirection, wallDirection, nextWall)
             | Right -> 
                 let (nextWallId, wallDirection) = currentWall.Right
                 let nextWall = findWall nextWallId allWalls
                 match wallDirection with 
                     | Up -> (getPosFromEnd indexOnCurrentWallEdge nextWall wallDirection, wallDirection, nextWall)
-                    | Down -> (getPosFromEnd indexOnCurrentWallEdge nextWall wallDirection, wallDirection, nextWall)
+                    | Down -> (getPosFromStart indexOnCurrentWallEdge nextWall wallDirection, wallDirection, nextWall)
                     | Left -> (getPosFromStart indexOnCurrentWallEdge nextWall wallDirection, wallDirection, nextWall)
                     | Right -> (getPosFromEnd indexOnCurrentWallEdge nextWall wallDirection, wallDirection, nextWall)
             | Left -> 
-                let (nextWallId, wallDirection) = currentWall.Right
-                let nextWall = findWall nextWallId allWalls
-                match wallDirection with 
-                    | Up -> (getPosFromEnd indexOnCurrentWallEdge nextWall wallDirection, wallDirection, nextWall)
-                    | Down -> (getPosFromEnd indexOnCurrentWallEdge nextWall wallDirection, wallDirection, nextWall)
-                    | Left -> (getPosFromEnd indexOnCurrentWallEdge nextWall wallDirection, wallDirection, nextWall)
-                    | Right -> (getPosFromStart indexOnCurrentWallEdge nextWall wallDirection, wallDirection, nextWall)
-            | Down -> 
-                let (nextWallId, wallDirection) = currentWall.Right
+                let (nextWallId, wallDirection) = currentWall.Left
                 let nextWall = findWall nextWallId allWalls
                 match wallDirection with 
                     | Up -> (getPosFromStart indexOnCurrentWallEdge nextWall wallDirection, wallDirection, nextWall)
                     | Down -> (getPosFromEnd indexOnCurrentWallEdge nextWall wallDirection, wallDirection, nextWall)
                     | Left -> (getPosFromEnd indexOnCurrentWallEdge nextWall wallDirection, wallDirection, nextWall)
-                    | Right -> (getPosFromEnd indexOnCurrentWallEdge nextWall wallDirection, wallDirection, nextWall)
-        (pos, direction, nextWall)
+                    | Right -> (getPosFromStart indexOnCurrentWallEdge nextWall wallDirection, wallDirection, nextWall)
+            | Down -> 
+                let (nextWallId, wallDirection) = currentWall.Bottom
+                let nextWall = findWall nextWallId allWalls
+                match wallDirection with 
+                    | Up -> (getPosFromStart indexOnCurrentWallEdge nextWall wallDirection, wallDirection, nextWall)
+                    | Down -> (getPosFromEnd indexOnCurrentWallEdge nextWall wallDirection, wallDirection, nextWall)
+                    | Left -> (getPosFromEnd indexOnCurrentWallEdge nextWall wallDirection, wallDirection, nextWall)
+                    | Right -> (getPosFromStart indexOnCurrentWallEdge nextWall wallDirection, wallDirection, nextWall)
+        (pos, oppositeDirection direction, nextWall)
 
 let walk (pos: Position) (currentWall: Wall) (allWalls: Wall[]) (direction: Direction) (steps: int) (map: Map) = 
+   // printfn "X: %d Y: %d" pos.X pos.Y
+    
     let mutable pos = pos
     let mutable direction = direction
     let mutable wall = currentWall
@@ -120,28 +129,13 @@ let walk (pos: Position) (currentWall: Wall) (allWalls: Wall[]) (direction: Dire
                 pos <- newPosition
                 direction <- newDirection
                 wall <- nextWall
+               // printfn "X: %d Y: %d" pos.X pos.Y
             | '#' -> () 
             | _ -> failwith "how did we jump out of the cube?!"
     (pos, direction, wall)
 
-let tests map = 
+let configForTestInput (walls: option<WallInfo>[]) = 
     
-    let cubeWallSize = 4
-    let mutable wallId = 1
-    let walls = seq {
-        for rowIndex in 0 .. cubeWallSize .. map.Height - 1 do 
-            let row = map.Content[rowIndex]
-            for columnIndex in 0 .. cubeWallSize .. row.Length - 1 do 
-                let item = row[columnIndex]
-                match item with 
-                | ' ' -> yield None
-                | _ -> 
-                    yield Some {Id = wallId; Size = cubeWallSize; LeftTopPosition = {X = columnIndex ; Y = rowIndex}}
-                    wallId <- wallId + 1
-    }
-
-    let walls = walls |> Array.ofSeq
-
     let getWall id = 
         walls 
         |> Seq.filter (fun wall -> wall.IsSome) 
@@ -165,7 +159,7 @@ let tests map =
     let wall3 = {
         Info = getWall 3; 
         Left = (2, Right); 
-        Top = (1, Right); 
+        Top = (1, Left); 
         Right = (4, Left); 
         Bottom = (5, Right)}
 
@@ -191,6 +185,80 @@ let tests map =
         Bottom = (2, Left)}
 
     [| wall1; wall2; wall3; wall4; wall5; wall6; |]
+
+let configForRealInput (walls: option<WallInfo>[]) = 
+    
+    let getWall id = 
+        walls 
+        |> Seq.filter (fun wall -> wall.IsSome) 
+        |> Seq.map (fun wall -> wall.Value)
+        |> Seq.find (fun wall -> wall.Id = id) 
+
+    let wall1 = {
+        Info = getWall 1; 
+        Left = (4, Left); 
+        Top = (6, Left); 
+        Right = (2, Left); // OK 
+        Bottom = (3, Up)} // OK
+
+    let wall2 = {
+        Info = getWall 2; 
+        Left = (1, Right); // OK
+        Top = (6, Down); 
+        Right = (5, Right); 
+        Bottom = (3, Right)} // OK
+
+    let wall3 = {
+        Info = getWall 3; 
+        Left = (4, Up); // OK 
+        Top = (1, Down); // OK 
+        Right = (2, Down); // OK 
+        Bottom = (5, Up)} // OK
+
+    let wall4 = {
+        Info = getWall 4; 
+        Left = (1, Left); 
+        Top = (3, Left); // OK 
+        Right = (5, Left); // OK 
+        Bottom = (6, Up)} // OK
+
+    let wall5 = {
+        Info = getWall 5; 
+        Left = (4, Right); // OK 
+        Top = (3, Down); // OK
+        Right = (2, Right); 
+        Bottom = (6, Right)} // OK
+    
+    let wall6 = {
+        Info = getWall 6; 
+        Left = (1, Up); 
+        Top = (4, Down); // OK
+        Right = (5, Down); // OK
+        Bottom = (2, Up)}
+
+    [| wall1; wall2; wall3; wall4; wall5; wall6; |]
+
+let generateWallInfos map cubeWallSize = 
+    let cubeWallSize = cubeWallSize
+    let mutable wallId = 1
+    let walls = seq {
+        for rowIndex in 0 .. cubeWallSize .. map.Height - 1 do 
+            let row = map.Content[rowIndex]
+            for columnIndex in 0 .. cubeWallSize .. row.Length - 1 do 
+                let item = row[columnIndex]
+                match item with 
+                | ' ' -> yield None
+                | _ -> 
+                    yield Some {Id = wallId; Size = cubeWallSize; LeftTopPosition = {X = columnIndex ; Y = rowIndex}}
+                    wallId <- wallId + 1
+    }
+
+    let walls = walls |> Array.ofSeq
+    walls
+
+let tests map = 
+    let walls = generateWallInfos map 4
+    configForTestInput walls
 
 let testWalkWithinWall () = 
     let (map, _, _) = parseOnTestInput ()
@@ -225,7 +293,30 @@ let testInput () =
     let result = 1000 * (position.Y + 1) + 4 * (position.X + 1) + (directionValue direction)
     if result <> 5031 then failwithf "failed test input - final calculation. %d" result else printfn "test input OK"
 
+let realInput () = 
+    let input = inputReader.readLines "Day22/input.txt"
+
+    let (map, startingPosition, path) = parse input
+    let wallInfos = generateWallInfos map 50
+    let walls = configForRealInput wallInfos
+    let currentWall = findWall 1 walls
+    let mutable direction = Right
+    let mutable position = {X = startingPosition; Y = 0}
+    let mutable wall = currentWall
+    for movement in path do 
+        match movement with 
+        | Walk steps -> 
+            let (newPosition, newDirection, newWall) = walk position wall walls direction steps map
+            position <- newPosition
+            direction <- newDirection
+            wall <- newWall
+        | Rotate rotation -> direction <- rotate rotation direction
+    let result = 1000 * (position.Y + 1) + 4 * (position.X + 1) + (directionValue direction)
+    if result <> 5031 then failwithf "failed test input - final calculation. %d" result else printfn "test input OK"
+
+
 let part2 () = 
     testWalkWithinWall ()
     testWalkToAnotherWall ()
     testInput ()
+    realInput ()
