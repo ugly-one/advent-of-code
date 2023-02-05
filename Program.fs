@@ -1,2 +1,3 @@
 ﻿//Day22_part1.part1()
-Day22_part2.part2()
+Day23.part1()
+Day23.part2()
