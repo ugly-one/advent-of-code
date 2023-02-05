@@ -132,7 +132,7 @@ let moveFirstDirectionToEndOfSeq (directions: Direction[]) =
     let secondPart = directions[1..]
     Array.append secondPart [| directions[0] |]
 
-let run input  rounds = 
+let run input (rounds: option<int>) = 
     let positionsWithElves = input |> parse
     let elves = new HashSet<Elf>()
     for position in positionsWithElves do 
@@ -140,7 +140,10 @@ let run input  rounds =
 
     let mutable directionsToConsider = [| North; South; West; East|]
 
-    for round in 1 .. rounds do 
+    let mutable round = 0
+    let considerNumberOfRounds = rounds.IsSome
+    let mutable somebodyMoved = true
+    while (not considerNumberOfRounds || round < rounds.Value) && somebodyMoved do 
         let consideredPositions = new Dictionary<Position, (bool * Elf[])>()
         for elf in elves do 
             let maybeNewPosition = considerPosition elves elf directionsToConsider
@@ -167,17 +170,17 @@ let run input  rounds =
                 for elf in elvesOnThisPosition do 
                     elves.Add elf |> ignore
 
-        let mutable allElvesTheSame = true
+        // TODO we could stop the loop once somebodyMoved is true
+        somebodyMoved <- false
         for previousElf in previousElves do 
-            if elves.Contains previousElf then () else allElvesTheSame <- false
+            if elves.Contains previousElf then () else somebodyMoved <- true
 
-        if allElvesTheSame then failwithf "%d" round else ()
-        
         directionsToConsider <- moveFirstDirectionToEndOfSeq directionsToConsider
-        // printfn "______________________"
-        // print elves
-        // printfn "______________________"
+        round <- round + 1
 
+    (elves, round)
+
+let calculateEmptySpaces elves = 
     let (topLeft, bottomRight) = findCorners elves
     let mutable emptySpacesCount = 0
     for y in topLeft.Y .. 1 .. bottomRight.Y do 
@@ -186,19 +189,24 @@ let run input  rounds =
             then () else emptySpacesCount <- emptySpacesCount + 1
 
     emptySpacesCount
+    
 
 let part1() = 
     // let input = inputReader.readLines "Day23/testInput.txt"
     // run input
     let input = inputReader.readLines "Day23/largerTestInput.txt"
-    let result = run input 10
+    let result = run input (Some 10) |> fst |> calculateEmptySpaces
     if result <> 110 then failwithf "Test input, wrong answer. %d" result else printfn "Test input, OK"
 
     let input = inputReader.readLines "Day23/input.txt"
-    let result = run input 10
+    let result = run input (Some 10) |> fst |> calculateEmptySpaces
     if result <> 3996 then failwithf "Input, wrong answer. %d" result else printfn "Input, OK"
 
 let part2 () = 
     let input = inputReader.readLines "Day23/largerTestInput.txt"
-    let result = run input 99999
-    if result <> 110 then failwithf "Test input, wrong answer. %d" result else printfn "Test input, OK"
+    let result = run input None |> snd
+    if result <> 20 then failwithf "Test input, wrong answer. %d" result else printfn "Test input, OK"
+
+    let input = inputReader.readLines "Day23/input.txt"
+    let result = run input None |> snd
+    if result <> 908 then failwithf "Input, wrong answer. %d" result else printfn "Input, OK"
