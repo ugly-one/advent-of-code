@@ -58,39 +58,28 @@ let part1 () =
         match blizzard with 
             | '>' -> 
                 match map[y, x + 1] with 
-                | Field f -> (x + 1, y, f)
-                | Wall -> 
-                    match map[y, 1] with 
-                    | Field f -> (1, y, f)
-                    | Wall -> failwith "not possible"
+                | Field f -> (y, x + 1)
+                | Wall -> (y, 1)
             | 'v' -> 
                 match map[y + 1, x] with 
-                | Field f -> (x, y + 1, f)
-                | Wall -> 
-                    match map[1, x] with 
-                    | Field f -> (x, 1, f)
-                    | Wall -> failwith "not possible"
+                | Field f -> (y + 1, x)
+                | Wall -> (1, x)
             | '<' -> 
                 match map[y, x - 1] with 
-                | Field f -> (x - 1, y, f)
-                | Wall -> 
-                    match map[y, width - 2] with 
-                    | Field f -> (width - 2, y, f)
-                    | Wall -> failwith "not possible"
+                | Field f -> (y, x - 1)
+                | Wall -> (y, width - 2)
             | '^' -> 
-                match map[x, y - 1] with 
-                | Field f -> (x, y - 1, f)
-                | Wall -> 
-                    match map[height - 2, x] with 
-                    | Field f -> (x, height - 2, f)
-                    | Wall -> failwith "not possible"
+                match map[y - 1, x] with 
+                | Field f -> (y - 1, x)
+                | Wall -> (height - 2, x)
             | _ -> failwith "not possible"
 
     let moveBlizzard blizzard y x  width height = 
-        let (targetX, targetY, _) = getPositionToUpdate blizzard x y width height
+        let (targetY, targetX) = getPositionToUpdate blizzard x y width height
         (targetY, targetX)
     
-    for i in 0 .. 1 .. 7 do 
+    let mutable expedition = (0, 1)
+    for minute in 1 .. 1 .. 18 do 
         let newMap = createEmptyMap ()
 
         for y in 1 .. 1 .. height - 2 do 
@@ -107,4 +96,6 @@ let part1 () =
                             let newField = Array.append field [| blizzard |]
                             newMap[y, x] <- Field newField
         map <- newMap
+        printfn ""
+        printfn "minute %d" minute
         print map width height
