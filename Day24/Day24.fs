@@ -95,11 +95,7 @@ let part1 () =
 
         allPosiblePositions |> Seq.filter (fun (y,x) -> isAvailable map[y, x])
     
-
-    for minute in 1 .. 1 .. 18 do 
-    
-        let possiblePositions = getPossiblePositions expedition map
-
+    let createNewMap (map: Cell[,]) = 
         let newMap = createEmptyMap ()
 
         for y in 1 .. 1 .. height - 2 do 
@@ -115,6 +111,11 @@ let part1 () =
                         | Field field -> 
                             let newField = Array.append field [| blizzard |]
                             newMap[y, x] <- Field newField
+        newMap
+
+    for minute in 1 .. 1 .. 18 do 
+        let possiblePositions = getPossiblePositions expedition map
+        let newMap = createNewMap map
         map <- newMap
         printfn ""
         printfn "minute %d" minute
