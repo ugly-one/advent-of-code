@@ -9,19 +9,17 @@ type Cell =
     | Field of Field
 
 
-let print (map: Cell[][]) = 
-    for y in 0 .. 1 .. map.Length - 1 do 
-        for x in 0 .. 1 .. map[y].Length - 1 do 
-            let cell = map[y][x] 
+let print (map: Cell[,]) width height= 
+    for y in 0 .. 1 .. height - 1 do 
+        for x in 0 .. 1 .. width - 1 do 
+            let cell = map[y, x] 
             match cell with 
             | Wall -> printf "#"
             | Field field -> 
-                let charToPrint = 
-                    match List.ofArray field with 
-                        | [] -> '.'
-                        | x::[] -> x
-                        | _ -> field.Length |> char
-                printf "%c" charToPrint
+                match List.ofArray field with 
+                    | [] -> printf "."
+                    | x::[] -> printf "%c" x
+                    | _ -> printf "%d" field.Length
         printfn ""
 
 
@@ -31,16 +29,15 @@ let part1 () =
     let width = input[0].Length
     let height = input.Length
 
-    let blizzards = seq {
-        for y in 0 .. 1 .. input.Length - 1 do 
-            for x in 0 .. 1 .. input[0].Length - 1 do 
-                match input[y][x] with 
-                | '.' -> ()
-                | '#' -> ()
-                | a -> yield (x, y)
-    }
+    let createEmptyMap () = 
+        let getCell y x = 
+            if y = 0 || x = 0 || y = height - 1 || x = width - 1 
+            then 
+                if (y = 0 && x = 1) || (y = height - 1 && x = width - 2) then Field[| |] else Wall 
+            else Field [| |]
+        Array2D.init height width (fun y x -> getCell y x )
 
-    let map : Cell[][] = Array.create width (Array.create height Wall)
+    let mutable map = createEmptyMap ()
 
     let charToBlizzard char = 
         match char with 
@@ -49,68 +46,65 @@ let part1 () =
         | a -> Field [| a |]
 
     for y in 0 .. 1 .. input.Length - 1 do 
-        let row = 
-            input[y].ToCharArray() 
-            |> Array.map charToBlizzard
-        map[y] <- row
+        for x in 0 .. 1 .. input[0].Length - 1 do 
+            let row = input[y]
+            let char = row[x]
+            let cell = charToBlizzard char
+            map[y,x] <- cell
 
-    print map
+    print map width height
 
-    let getPositionToUpdate blizzard x y = 
+    let getPositionToUpdate blizzard x y  width height = 
         match blizzard with 
             | '>' -> 
-                match map[y][x + 1] with 
+                match map[y, x + 1] with 
                 | Field f -> (x + 1, y, f)
                 | Wall -> 
-                    match map[y][1] with 
+                    match map[y, 1] with 
                     | Field f -> (1, y, f)
                     | Wall -> failwith "not possible"
             | 'v' -> 
-                match map[y + 1][x] with 
+                match map[y + 1, x] with 
                 | Field f -> (x, y + 1, f)
                 | Wall -> 
-                    match map[1][x] with 
+                    match map[1, x] with 
                     | Field f -> (x, 1, f)
                     | Wall -> failwith "not possible"
             | '<' -> 
-                match map[y][x - 1] with 
+                match map[y, x - 1] with 
                 | Field f -> (x - 1, y, f)
                 | Wall -> 
-                    let width = map[y].Length
-                    match map[y][width - 2] with 
+                    match map[y, width - 2] with 
                     | Field f -> (width - 2, y, f)
                     | Wall -> failwith "not possible"
             | '^' -> 
-                match map[x][y - 1] with 
+                match map[x, y - 1] with 
                 | Field f -> (x, y - 1, f)
                 | Wall -> 
-                    let height = map.Length
-                    match map[height - 2][x] with 
+                    match map[height - 2, x] with 
                     | Field f -> (x, height - 2, f)
                     | Wall -> failwith "not possible"
             | _ -> failwith "not possible"
 
-
-    let moveBlizzard blizzard remainingBlizzards (map: Cell[][]) y x = 
-        let (targetX, targetY, targetField) = getPositionToUpdate blizzard x y
-        map[y][x] <- Field remainingBlizzards
-        let newTargetField = Array.append targetField [| blizzard |] |> Field
-        map[targetY][targetX] <- newTargetField
+    let moveBlizzard blizzard y x  width height = 
+        let (targetX, targetY, _) = getPositionToUpdate blizzard x y width height
+        (targetY, targetX)
     
-    // TODO all fields should be updated simultaneously, not like now - we end-up moving the same blizzard multiple times
     for i in 0 .. 1 .. 7 do 
-        // move blizzards
-        for y in 1 .. 1 .. map.Length - 2 do 
-            for x in 1 .. 1 .. map[0].Length - 2 do 
-                match map[y][x] with 
+        let newMap = createEmptyMap ()
+
+        for y in 1 .. 1 .. height - 2 do 
+            for x in 1 .. 1 .. width - 2 do 
+                match map[y, x] with 
                 | Wall -> () 
                 | Field field -> 
-                    match List.ofArray field with 
-                    | [] -> () // empty field
-                    | blizzard::[] -> // field with one blizzard
-                        moveBlizzard blizzard [||] map y x
-                    | blizzard::blizzards -> // field with multiple blizzards
-                        moveBlizzard blizzard (Array.ofList blizzards) map y x
-        print map
-
-
+                    for blizzard in field do
+                        let (y, x) = moveBlizzard blizzard y x width height
+                        let targetCell = newMap[y, x]
+                        match targetCell with 
+                        | Wall -> failwith "WHAT?!"
+                        | Field field -> 
+                            let newField = Array.append field [| blizzard |]
+                            newMap[y, x] <- Field newField
+        map <- newMap
+        print map width height
