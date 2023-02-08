@@ -79,7 +79,27 @@ let part1 () =
         (targetY, targetX)
     
     let mutable expedition = (0, 1)
+
+    let getPossiblePositions (y,x) (map: Cell[,]) = 
+        let allPosiblePositions = seq {
+            yield (y - 1, x)
+            yield (y, x - 1)
+            yield (y, x + 1)
+            yield (y + 1, x)
+        }
+
+        let isAvailable cell = 
+            match cell with 
+            | Wall -> false
+            | Field field -> if Array.length field = 0 then true else false
+
+        allPosiblePositions |> Seq.filter (fun (y,x) -> isAvailable map[y, x])
+    
+
     for minute in 1 .. 1 .. 18 do 
+    
+        let possiblePositions = getPossiblePositions expedition map
+
         let newMap = createEmptyMap ()
 
         for y in 1 .. 1 .. height - 2 do 
