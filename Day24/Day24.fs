@@ -9,7 +9,7 @@ type Cell =
     | Field of Field
 
 
-let print (map: Cell[,]) width height= 
+let print (map: Cell[,]) (expeditionY, expeditionX) width height= 
     for y in 0 .. 1 .. height - 1 do 
         for x in 0 .. 1 .. width - 1 do 
             let cell = map[y, x] 
@@ -17,7 +17,7 @@ let print (map: Cell[,]) width height=
             | Wall -> printf "#"
             | Field field -> 
                 match List.ofArray field with 
-                    | [] -> printf "."
+                    | [] -> if expeditionY = y && expeditionX = x then printf "E" else printf "."
                     | x::[] -> printf "%c" x
                     | _ -> printf "%d" field.Length
         printfn ""
@@ -51,8 +51,6 @@ let part1 () =
             let char = row[x]
             let cell = charToBlizzard char
             map[y,x] <- cell
-
-    print map width height
 
     let getPositionToUpdate blizzard x y  width height = 
         match blizzard with 
@@ -92,10 +90,11 @@ let part1 () =
             match cell with 
             | Wall -> false
             | Field field -> if Array.length field = 0 then true else false
-
-        allPosiblePositions |> Seq.filter (fun (y,x) -> isAvailable map[y, x])
+        let isWithinMap y x = 
+            if x >= 0 && x < width && y >= 0 && y < height then true else false
+        allPosiblePositions |> Seq.filter (fun (y,x) -> isWithinMap y x && isAvailable map[y, x])
     
-    let createNewMap (map: Cell[,]) = 
+    let moveBlizzards (map: Cell[,]) = 
         let newMap = createEmptyMap ()
 
         for y in 1 .. 1 .. height - 2 do 
@@ -113,10 +112,36 @@ let part1 () =
                             newMap[y, x] <- Field newField
         newMap
 
-    for minute in 1 .. 1 .. 18 do 
-        let possiblePositions = getPossiblePositions expedition map
-        let newMap = createNewMap map
-        map <- newMap
-        printfn ""
-        printfn "minute %d" minute
-        print map width height
+    let targetPosition = (height - 1, width - 2)
+
+    let rec walk (expeditionY, expeditionX) map minute = 
+    
+        print map expedition width height
+
+        if expeditionY + 1 = (targetPosition |> fst) && expeditionX = (targetPosition |> snd) then 
+            Some minute 
+        else
+            let mapAfterMove = moveBlizzards map
+            let possiblePositions = getPossiblePositions (expeditionY, expeditionX) mapAfterMove
+            let possiblePositions = 
+                match mapAfterMove[expeditionY, expeditionX] with 
+                | Wall -> failwith "WHAT?!"
+                | Field field -> 
+                    if (field |> Array.length) = 0 then 
+                        Seq.append possiblePositions [| (expeditionY, expeditionX )|]
+                    else 
+                        possiblePositions 
+
+            let mutable bestMinute = None
+            for position in possiblePositions do 
+                let minutes = walk position mapAfterMove (minute + 1)
+                match minutes with 
+                | None -> ()
+                | Some m -> match bestMinute with 
+                            | None -> bestMinute <- Some m 
+                            | Some best -> if m < best then bestMinute <- Some m else ()
+            bestMinute
+
+    let result = walk expedition map 0
+
+    printfn "%d" result.Value
