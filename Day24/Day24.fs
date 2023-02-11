@@ -31,8 +31,7 @@ let expeditionStart = {Y = 0; X = 1}
 let isInitialPosition pos = 
     pos = expeditionStart
 
-let part1 () = 
-    let input = inputReader.readLines "Day24/input.txt"
+let part1 (input: string[]) = 
 
     let width = input[0].Length
     let height = input.Length
@@ -88,10 +87,10 @@ let part1 () =
         let x = position.X
         let y = position.Y
         let allPosiblePositions = seq {
-            yield {Y = y - 1; X =  x}
-            yield {Y = y; X = x - 1}
             yield {Y = y; X = x + 1}
             yield {Y = y + 1; X = x}
+            yield {Y = y - 1; X =  x}
+            yield {Y = y; X = x - 1}
         }
 
         let isAvailable cell = 
@@ -130,6 +129,14 @@ let part1 () =
 
     let targetPosition = {Y = height - 1; X =  width - 2}
 
+    let printPos position = 
+        printf "(%d,%d)" position.X position.Y
+
+    let printHistory (history: Position[]) = 
+        for item in history do 
+            printPos item
+            printf ","
+
     let rec walk expedition map minute historyOfActions minMinuteSoFar = 
 
         if expedition.Y = 0 && expedition.X = 1 && (historyOfActions |> Seq.filter (fun historyPosition -> historyPosition.Y <> 0) |> Seq.length > 0) then 
@@ -140,29 +147,21 @@ let part1 () =
 
         if expedition.Y + 1 = (targetPosition.Y) && expedition.X = (targetPosition.X) then 
             printfn "FOUND %d" minute
+            printHistory historyOfActions
+            printfn ""
             Some minute 
         else    
             let makeSenseToEvenTry = 
                 match minMinuteSoFar with 
                 | None -> 
-                    if minute < 30 then true else false
-                | Some minTime -> if minute > minTime then false else true
+                    if minute < 700 then true else false // rather arbitrary max limit, but seems to work, it appears that for the real input, I can find a solution in 634 minutes (which is not the most optimal)
+                | Some minTime -> if minute >= minTime then false else true
 
             if not makeSenseToEvenTry then None 
             else 
                 let mapAfterMove = moveBlizzards map
                 let possiblePositions = getPossiblePositions expedition mapAfterMove
                 
-                let visitedTheSamePlaceFewTimes pos = 
-                    historyOfActions 
-                    |> Seq.filter (fun hisPos -> pos = hisPos)
-                    |> Seq.length < 5
-
-                // try to avoid walking in circles by checking if the same place has already been visited multiple times
-                let possiblePositions = 
-                    if possiblePositions |> Seq.length = 0 then possiblePositions else 
-                    possiblePositions |> Seq.filter (fun pos -> visitedTheSamePlaceFewTimes pos)
-
                 // add a possibility to wait (if even possible)
                 let possiblePositions = 
                     match mapAfterMove[expedition.Y, expedition.X] with 
@@ -179,11 +178,26 @@ let part1 () =
                     let minutes = walk newPosition mapAfterMove (minute + 1) historyOfActions bestMinute
                     match minutes with 
                     | None -> ()
-                    | Some m -> match bestMinute with 
+                    | Some m -> 
+                                // update bestMinute if we found a shorter path
+                                match bestMinute with 
                                 | None -> bestMinute <- Some m 
                                 | Some best -> if m < best then bestMinute <- Some m else ()
+
                 bestMinute
 
     let result = walk expeditionStart map 1 [| |] None
 
     printfn "%d" result.Value
+
+
+let part1TestInput () = 
+    inputReader.readLines "Day24/testInput.txt" |> part1
+
+
+let part1RealInput () = 
+    inputReader.readLines "Day24/input.txt" |> part1
+
+let run () = 
+    part1TestInput () 
+    part1RealInput ()

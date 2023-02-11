@@ -1,1 +1,1 @@
-﻿Day24.part1()
+﻿Day24.run()
