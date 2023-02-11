@@ -30,29 +30,57 @@ let print (map: Cell[,]) (expeditionY, expeditionX) width height=
 
 let expeditionStart = {Y = 0; X = 1}
 
+
 let isInitialPosition pos = 
     pos = expeditionStart
+
+
+let createEmptyMap width height = 
+    let getCell y x = 
+        if y = 0 || x = 0 || y = height - 1 || x = width - 1 
+        then 
+            if (y = 0 && x = 1) || (y = height - 1 && x = width - 2) then Field[| |] else Wall 
+        else Field [| |]
+    Array2D.init height width (fun y x -> getCell y x )
+
+let charToBlizzard char = 
+    match char with 
+    | '.' -> Field [||]
+    | '#' -> Wall
+    | a -> Field [| a |]
+
+let getPositionToUpdate (map: Cell[,]) blizzard x y  width height  = 
+    match blizzard with 
+        | '>' -> 
+            match map[y, x + 1] with 
+            | Field f -> (y, x + 1)
+            | Wall -> (y, 1)
+        | 'v' -> 
+            match map[y + 1, x] with 
+            | Field f -> (y + 1, x)
+            | Wall -> (1, x)
+        | '<' -> 
+            match map[y, x - 1] with 
+            | Field f -> (y, x - 1)
+            | Wall -> (y, width - 2)
+        | '^' -> 
+            match map[y - 1, x] with 
+            | Field f -> (y - 1, x)
+            | Wall -> (height - 2, x)
+        | _ -> failwith "not possible"
+
+
+let moveBlizzard map blizzard y x  width height = 
+    let (targetY, targetX) = getPositionToUpdate map blizzard x y width height
+    (targetY, targetX)
 
 let part1 maxMinutes (input: string[]) = 
 
     let width = input[0].Length
     let height = input.Length
-
-    let createEmptyMap () = 
-        let getCell y x = 
-            if y = 0 || x = 0 || y = height - 1 || x = width - 1 
-            then 
-                if (y = 0 && x = 1) || (y = height - 1 && x = width - 2) then Field[| |] else Wall 
-            else Field [| |]
-        Array2D.init height width (fun y x -> getCell y x )
-
+    let targetPosition = {Y = height - 1; X =  width - 2}
+    let createEmptyMap () = createEmptyMap width height
     let mutable map = createEmptyMap ()
-
-    let charToBlizzard char = 
-        match char with 
-        | '.' -> Field [||]
-        | '#' -> Wall
-        | a -> Field [| a |]
 
     for y in 0 .. 1 .. input.Length - 1 do 
         for x in 0 .. 1 .. input[0].Length - 1 do 
@@ -61,29 +89,6 @@ let part1 maxMinutes (input: string[]) =
             let cell = charToBlizzard char
             map[y,x] <- cell
 
-    let getPositionToUpdate blizzard x y  width height = 
-        match blizzard with 
-            | '>' -> 
-                match map[y, x + 1] with 
-                | Field f -> (y, x + 1)
-                | Wall -> (y, 1)
-            | 'v' -> 
-                match map[y + 1, x] with 
-                | Field f -> (y + 1, x)
-                | Wall -> (1, x)
-            | '<' -> 
-                match map[y, x - 1] with 
-                | Field f -> (y, x - 1)
-                | Wall -> (y, width - 2)
-            | '^' -> 
-                match map[y - 1, x] with 
-                | Field f -> (y - 1, x)
-                | Wall -> (height - 2, x)
-            | _ -> failwith "not possible"
-
-    let moveBlizzard blizzard y x  width height = 
-        let (targetY, targetX) = getPositionToUpdate blizzard x y width height
-        (targetY, targetX)
     
     let getPossiblePositions position (map: Cell[,]) = 
         let x = position.X
@@ -120,7 +125,7 @@ let part1 maxMinutes (input: string[]) =
                 | Wall -> () 
                 | Field field -> 
                     for blizzard in field do
-                        let (y, x) = moveBlizzard blizzard y x width height
+                        let (y, x) = moveBlizzard map blizzard y x width height
                         let targetCell = newMap[y, x]
                         match targetCell with 
                         | Wall -> failwith "WHAT?!"
@@ -128,8 +133,6 @@ let part1 maxMinutes (input: string[]) =
                             let newField = Array.append field [| blizzard |]
                             newMap[y, x] <- Field newField
         newMap
-
-    let targetPosition = {Y = height - 1; X =  width - 2}
 
     let printPos position = 
         printf "(%d,%d)" position.X position.Y
@@ -142,7 +145,6 @@ let part1 maxMinutes (input: string[]) =
     let cache = new Dictionary<(Position * int), option<int>>()
 
     let rec walk currentPosition map minute historyOfActions bestResultSoFar = 
-
 
         if currentPosition.Y = 0 && currentPosition.X = 1 && (historyOfActions |> Seq.filter (fun historyPosition -> historyPosition.Y <> 0) |> Seq.length > 0) then 
             failwith "You are not allowed to move back to starting pos" 
