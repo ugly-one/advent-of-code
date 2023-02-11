@@ -137,7 +137,7 @@ let part1 maxMinutes (input: string[]) =
             printPos item
             printf ","
 
-    let rec walk currentPosition map minute historyOfActions minMinuteSoFar = 
+    let rec walk currentPosition map minute historyOfActions bestResultSoFar = 
 
         if currentPosition.Y = 0 && currentPosition.X = 1 && (historyOfActions |> Seq.filter (fun historyPosition -> historyPosition.Y <> 0) |> Seq.length > 0) then 
             failwith "You are not allowed to move back to starting pos" 
@@ -152,9 +152,12 @@ let part1 maxMinutes (input: string[]) =
             Some minute 
         else    
             let makeSenseToEvenTry = 
-                match minMinuteSoFar with 
+                match bestResultSoFar with 
                 | None -> true
-                | Some minTime -> if minute >= (minTime - 1) then false else true
+                | Some bestResult -> 
+                    if minute >= (bestResult - 1) then false else true
+
+
 
             if not makeSenseToEvenTry then None 
             else 
@@ -176,19 +179,19 @@ let part1 maxMinutes (input: string[]) =
                         else 
                             possiblePositions 
 
-                let mutable bestMinute = minMinuteSoFar
+                let mutable bestResult = bestResultSoFar
                 for newPosition in possiblePositions do 
                     let historyOfActions = Array.append historyOfActions [| newPosition |]
-                    let minutes = walk newPosition mapAfterMove (minute + 1) historyOfActions bestMinute
-                    match minutes with 
+                    let resultOption = walk newPosition mapAfterMove (minute + 1) historyOfActions bestResult
+                    match resultOption with 
                     | None -> ()
-                    | Some m -> 
+                    | Some result -> 
                         // update bestMinute if we found a shorter path
-                        match bestMinute with 
-                        | None -> bestMinute <- Some m 
-                        | Some best -> if m < best then bestMinute <- Some m else ()
+                        match bestResult with 
+                        | None -> bestResult <- Some result 
+                        | Some best -> if result < best then bestResult <- Some result else ()
 
-                bestMinute
+                bestResult
 
     let result = walk expeditionStart map 1 [| |] (Some maxMinutes)
 
