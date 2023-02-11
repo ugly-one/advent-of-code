@@ -136,7 +136,7 @@ let moveBlizzards (map: Cell[,]) =
 
 let rec walk currentPosition map minute historyOfActions bestResultSoFar targetPosition (cache: Dictionary<(Position * int), option<int>> ) expeditionStart = 
 
-    if currentPosition.Y = 0 && currentPosition.X = 1 && (historyOfActions |> Seq.filter (fun historyPosition -> historyPosition.Y <> 0) |> Seq.length > 0) then 
+    if currentPosition = expeditionStart && (historyOfActions |> Seq.filter (fun historyPosition -> historyPosition.Y <> expeditionStart.Y) |> Seq.length > 0) then 
         failwith "You are not allowed to move back to starting pos" 
         else 
         ()
@@ -147,11 +147,11 @@ let rec walk currentPosition map minute historyOfActions bestResultSoFar targetP
     // printfn ""
     // printfn "" 
 
-    if currentPosition.Y + 1 = targetPosition.Y && currentPosition.X = targetPosition.X then 
+    if currentPosition.Y = targetPosition.Y && currentPosition.X = targetPosition.X then 
         // it's enough to be in the position right above the target
-        printfn "FOUND %d" (minute + 1)
+        printfn "FOUND %d" (minute)
         printfn ""
-        Some (minute + 1)
+        Some (minute)
     else    
         let makeSenseToTry = 
 
@@ -255,29 +255,48 @@ let part1 maxMinutes (input: string[]) =
 
 let part2 maxMinutes (input: string[]) = 
 
+    let mutable totalTime = 0
+
     let width = input[0].Length
     let height = input.Length
     let map = parseMap input
     let targetPosition = {Y = height - 1; X =  width - 2}
     let expeditionStart = {Y = 0; X = 1}
+    let cache = new Dictionary<(Position * int), option<int>>()
 
+    // to the end
+    let minutesToTarget = walk expeditionStart map 0 [| |] (Some maxMinutes) targetPosition cache expeditionStart
+    totalTime <- minutesToTarget.Value
+    printfn "Finished going to target first time!: %d" minutesToTarget.Value
+
+    // back to start again
+    let mutable map = map
+    for i in 1 .. 1 .. totalTime do 
+        map <- moveBlizzards map
+
+    let targetPosition = {Y = 0; X =  1}
+    let expeditionStart = {Y = height - 1; X = width - 2}
+    let cache = new Dictionary<(Position * int), option<int>>()
+    let minutesToTarget = walk expeditionStart map 0 [| |] (Some maxMinutes) targetPosition cache expeditionStart
+
+    printfn "Finished going back!: %d" minutesToTarget.Value
+    totalTime <- totalTime + minutesToTarget.Value
+
+    // again to the end
+    let mutable map = map
+    for i in 1 .. 1 .. totalTime do 
+        map <- moveBlizzards map
+
+    let targetPosition = {Y = height - 1; X =  width - 2}
+    let expeditionStart = {Y = 0; X = 1}
     let cache = new Dictionary<(Position * int), option<int>>()
 
     let minutesToTarget = walk expeditionStart map 0 [| |] (Some maxMinutes) targetPosition cache expeditionStart
-    
-    printfn "Finished going to target first time!: %d" minutesToTarget.Value
 
-    let mutable map = map
-    for i in 1 .. 1 .. minutesToTarget.Value do 
-        map <- moveBlizzards map
+    printfn "Finished going to the end again!: %d" minutesToTarget.Value
+    totalTime <- totalTime + minutesToTarget.Value
 
-    print map targetPosition
-
-    let targetPosition = {Y = 0; X =  1}
-    let expeditionStart = {Y = height - 1; X =  width - 2}
-    let minutesToTarget = walk expeditionStart map 0 [| |] (Some maxMinutes) targetPosition cache expeditionStart
-
-    minutesToTarget.Value
+    totalTime
 
 
 let part1TestInput () = 
@@ -294,6 +313,6 @@ let part2TestInput () =
 
 
 let run () = 
-    //part1TestInput () 
-    //part1RealInput ()
+    part1TestInput () 
+    part1RealInput ()
     part2TestInput ()
