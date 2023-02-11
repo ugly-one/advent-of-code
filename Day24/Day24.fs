@@ -31,7 +31,7 @@ let expeditionStart = {Y = 0; X = 1}
 let isInitialPosition pos = 
     pos = expeditionStart
 
-let part1 (input: string[]) = 
+let part1 maxMinutes (input: string[]) = 
 
     let width = input[0].Length
     let height = input.Length
@@ -137,15 +137,15 @@ let part1 (input: string[]) =
             printPos item
             printf ","
 
-    let rec walk expedition map minute historyOfActions minMinuteSoFar = 
+    let rec walk currentPosition map minute historyOfActions minMinuteSoFar = 
 
-        if expedition.Y = 0 && expedition.X = 1 && (historyOfActions |> Seq.filter (fun historyPosition -> historyPosition.Y <> 0) |> Seq.length > 0) then 
+        if currentPosition.Y = 0 && currentPosition.X = 1 && (historyOfActions |> Seq.filter (fun historyPosition -> historyPosition.Y <> 0) |> Seq.length > 0) then 
             failwith "You are not allowed to move back to starting pos" 
             else 
             ()
         //printfn "(%d,%d). %d" expedition.X expedition.Y minute
 
-        if expedition.Y + 1 = (targetPosition.Y) && expedition.X = (targetPosition.X) then 
+        if currentPosition.Y + 1 = (targetPosition.Y) && currentPosition.X = (targetPosition.X) then 
             printfn "FOUND %d" minute
             printHistory historyOfActions
             printfn ""
@@ -153,22 +153,26 @@ let part1 (input: string[]) =
         else    
             let makeSenseToEvenTry = 
                 match minMinuteSoFar with 
-                | None -> 
-                    if minute < 700 then true else false // rather arbitrary max limit, but seems to work, it appears that for the real input, I can find a solution in 634 minutes (which is not the most optimal)
-                | Some minTime -> if minute >= minTime then false else true
+                | None -> true
+                | Some minTime -> if minute >= (minTime - 1) then false else true
 
             if not makeSenseToEvenTry then None 
             else 
                 let mapAfterMove = moveBlizzards map
-                let possiblePositions = getPossiblePositions expedition mapAfterMove
+
+                // find all possible moves from currentPosition
+                let possiblePositions = 
+                    getPossiblePositions currentPosition mapAfterMove
+                    // filter out positions that were already visisted up to 4 times
+                    |> Seq.filter (fun pos -> Seq.filter (fun hisPos -> hisPos = pos) historyOfActions |> Seq.length < 3)
                 
                 // add a possibility to wait (if even possible)
                 let possiblePositions = 
-                    match mapAfterMove[expedition.Y, expedition.X] with 
+                    match mapAfterMove[currentPosition.Y, currentPosition.X] with 
                     | Wall -> failwith "WHAT?!"
                     | Field field -> 
                         if (field |> Array.length) = 0  then 
-                            Seq.append possiblePositions [| expedition |]
+                            Seq.append possiblePositions [| currentPosition |]
                         else 
                             possiblePositions 
 
@@ -179,24 +183,24 @@ let part1 (input: string[]) =
                     match minutes with 
                     | None -> ()
                     | Some m -> 
-                                // update bestMinute if we found a shorter path
-                                match bestMinute with 
-                                | None -> bestMinute <- Some m 
-                                | Some best -> if m < best then bestMinute <- Some m else ()
+                        // update bestMinute if we found a shorter path
+                        match bestMinute with 
+                        | None -> bestMinute <- Some m 
+                        | Some best -> if m < best then bestMinute <- Some m else ()
 
                 bestMinute
 
-    let result = walk expeditionStart map 1 [| |] None
+    let result = walk expeditionStart map 1 [| |] (Some maxMinutes)
 
     printfn "%d" result.Value
 
 
 let part1TestInput () = 
-    inputReader.readLines "Day24/testInput.txt" |> part1
+    inputReader.readLines "Day24/testInput.txt" |> part1 19
 
 
 let part1RealInput () = 
-    inputReader.readLines "Day24/input.txt" |> part1
+    inputReader.readLines "Day24/input.txt" |> part1 497
 
 let run () = 
     part1TestInput () 
