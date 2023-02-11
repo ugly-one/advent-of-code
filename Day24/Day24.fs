@@ -8,7 +8,6 @@ type Cell =
     | Wall
     | Field of Field
 
-
 let print (map: Cell[,]) (expeditionY, expeditionX) width height= 
     for y in 0 .. 1 .. height - 1 do 
         for x in 0 .. 1 .. width - 1 do 
@@ -22,6 +21,8 @@ let print (map: Cell[,]) (expeditionY, expeditionX) width height=
                     | _ -> printf "%d" field.Length
         printfn ""
 
+let isNotInitialPosition y x = 
+    if y = 0 && x = 1 then false else true
 
 let part1 () = 
     let input = inputReader.readLines "Day24/testInput.txt"
@@ -92,7 +93,8 @@ let part1 () =
             | Field field -> if Array.length field = 0 then true else false
         let isWithinMap y x = 
             if x >= 0 && x < width && y >= 0 && y < height then true else false
-        allPosiblePositions |> Seq.filter (fun (y,x) -> isWithinMap y x && isAvailable map[y, x])
+
+        allPosiblePositions |> Seq.filter (fun (y,x) -> isWithinMap y x && isAvailable map[y, x] && isNotInitialPosition y x)
     
     let moveBlizzards (map: Cell[,]) = 
         let newMap = createEmptyMap ()
@@ -114,34 +116,56 @@ let part1 () =
 
     let targetPosition = (height - 1, width - 2)
 
-    let rec walk (expeditionY, expeditionX) map minute = 
-    
-        print map expedition width height
+    let rec walk (expeditionY, expeditionX) map minute historyOfActions minMinuteSoFar = 
+
+        if expeditionY = 0 && expeditionX = 1 && (Seq.length historyOfActions > 0) then failwith "You are not allowed to move back to starting pos" else ()
+        printfn "%d %d" expeditionX expeditionY
+        // print map expedition width height
 
         if expeditionY + 1 = (targetPosition |> fst) && expeditionX = (targetPosition |> snd) then 
             Some minute 
-        else
-            let mapAfterMove = moveBlizzards map
-            let possiblePositions = getPossiblePositions (expeditionY, expeditionX) mapAfterMove
-            let possiblePositions = 
-                match mapAfterMove[expeditionY, expeditionX] with 
-                | Wall -> failwith "WHAT?!"
-                | Field field -> 
-                    if (field |> Array.length) = 0 then 
-                        Seq.append possiblePositions [| (expeditionY, expeditionX )|]
-                    else 
-                        possiblePositions 
+        else    
+            let makeSenseToEvenTry = 
+                match minMinuteSoFar with 
+                | None -> true
+                | Some minTime -> if minute > minTime then false else true
 
-            let mutable bestMinute = None
-            for position in possiblePositions do 
-                let minutes = walk position mapAfterMove (minute + 1)
-                match minutes with 
-                | None -> ()
-                | Some m -> match bestMinute with 
-                            | None -> bestMinute <- Some m 
-                            | Some best -> if m < best then bestMinute <- Some m else ()
-            bestMinute
+            if not makeSenseToEvenTry then None 
+            else 
+                let mapAfterMove = moveBlizzards map
+                let possiblePositions = getPossiblePositions (expeditionY, expeditionX) mapAfterMove
+                
+                let visitedTheSamePlaceFewTimes y x = 
+                    historyOfActions 
+                    |> Seq.filter (fun (hisY,hisX) -> x = hisX && y = hisY)
+                    |> Seq.length < 5
 
-    let result = walk expedition map 0
+                // try to avoid walking in circles by checking if the same place has already been visited multiple times
+                let possiblePositions = 
+                    if possiblePositions |> Seq.length = 0 then possiblePositions else 
+                    possiblePositions |> Seq.filter (fun (y,x) -> visitedTheSamePlaceFewTimes y x)
+
+                // add a possibility to wait (if even possible)
+                let possiblePositions = 
+                    match mapAfterMove[expeditionY, expeditionX] with 
+                    | Wall -> failwith "WHAT?!"
+                    | Field field -> 
+                        if (field |> Array.length) = 0  then 
+                            Seq.append possiblePositions [| (expeditionY, expeditionX) |]
+                        else 
+                            possiblePositions 
+
+                let mutable bestMinute = None
+                for newPosition in possiblePositions do 
+                    let historyOfActions = Array.append historyOfActions [| newPosition |]
+                    let minutes = walk newPosition mapAfterMove (minute + 1) historyOfActions bestMinute
+                    match minutes with 
+                    | None -> ()
+                    | Some m -> match bestMinute with 
+                                | None -> bestMinute <- Some m 
+                                | Some best -> if m < best then bestMinute <- Some m else ()
+                bestMinute
+
+    let result = walk expedition map 1 [| |] None
 
     printfn "%d" result.Value
