@@ -132,7 +132,7 @@ let part1 maxMinutes (input: string[]) =
     let printPos position = 
         printf "(%d,%d)" position.X position.Y
 
-    let printHistory (history: Position[]) = 
+    let printPositions (history: Position[]) = 
         for item in history do 
             printPos item
             printf ","
@@ -144,22 +144,30 @@ let part1 maxMinutes (input: string[]) =
             else 
             ()
         //printfn "(%d,%d). %d" expedition.X expedition.Y minute
+        historyOfActions |> printPositions 
+        printfn ""
+        printfn "" 
 
-        if currentPosition.Y + 1 = (targetPosition.Y) && currentPosition.X = (targetPosition.X) then 
-            printfn "FOUND %d" minute
-            printHistory historyOfActions
+        if currentPosition.Y + 1 = targetPosition.Y && currentPosition.X = targetPosition.X then 
+            // it's enough to be in the position right above the target
+            printfn "FOUND %d" (minute + 1)
             printfn ""
-            Some minute 
+            Some (minute + 1)
         else    
-            let makeSenseToEvenTry = 
+            let makeSenseToTry = 
+
+                let calcuateDistanceToTarget position = 
+                    targetPosition.X - position.X + targetPosition.Y - position.Y
+
                 match bestResultSoFar with 
                 | None -> true
                 | Some bestResult -> 
-                    if minute >= (bestResult - 1) then false else true
+                    let tooFarToReachTargetAndBeatCurrentBestResult = calcuateDistanceToTarget currentPosition + minute >= bestResult
+                    if tooFarToReachTargetAndBeatCurrentBestResult then false else true
 
-
-
-            if not makeSenseToEvenTry then None 
+            if not makeSenseToTry then 
+                printfn "makes no sense" 
+                None 
             else 
                 let mapAfterMove = moveBlizzards map
 
@@ -167,7 +175,7 @@ let part1 maxMinutes (input: string[]) =
                 let possiblePositions = 
                     getPossiblePositions currentPosition mapAfterMove
                     // filter out positions that were already visisted up to 4 times
-                    |> Seq.filter (fun pos -> Seq.filter (fun hisPos -> hisPos = pos) historyOfActions |> Seq.length < 3)
+                    //|> Seq.filter (fun pos -> Seq.filter (fun hisPos -> hisPos = pos) historyOfActions |> Seq.length < 3)
                 
                 // add a possibility to wait (if even possible)
                 let possiblePositions = 
@@ -193,9 +201,9 @@ let part1 maxMinutes (input: string[]) =
 
                 bestResult
 
-    let result = walk expeditionStart map 1 [| |] (Some maxMinutes)
+    let result = walk expeditionStart map 0 [| |] (Some maxMinutes)
 
-    printfn "%d" result.Value
+    printfn "Finished!: %d" result.Value
 
 
 let part1TestInput () = 
@@ -207,4 +215,4 @@ let part1RealInput () =
 
 let run () = 
     part1TestInput () 
-    part1RealInput ()
+   // part1RealInput ()
