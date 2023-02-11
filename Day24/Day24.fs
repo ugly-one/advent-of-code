@@ -1,5 +1,7 @@
 module Day24
 
+open System.Collections.Generic
+
 type Blizzard = char
 
 type Field = array<Blizzard>
@@ -137,16 +139,21 @@ let part1 maxMinutes (input: string[]) =
             printPos item
             printf ","
 
+    let cache = new Dictionary<(Position * int), option<int>>()
+
     let rec walk currentPosition map minute historyOfActions bestResultSoFar = 
+
 
         if currentPosition.Y = 0 && currentPosition.X = 1 && (historyOfActions |> Seq.filter (fun historyPosition -> historyPosition.Y <> 0) |> Seq.length > 0) then 
             failwith "You are not allowed to move back to starting pos" 
             else 
             ()
+        // printPos currentPosition 
+
         //printfn "(%d,%d). %d" expedition.X expedition.Y minute
-        historyOfActions |> printPositions 
-        printfn ""
-        printfn "" 
+        // historyOfActions |> printPositions 
+        // printfn ""
+        // printfn "" 
 
         if currentPosition.Y + 1 = targetPosition.Y && currentPosition.X = targetPosition.X then 
             // it's enough to be in the position right above the target
@@ -166,7 +173,7 @@ let part1 maxMinutes (input: string[]) =
                     if tooFarToReachTargetAndBeatCurrentBestResult then false else true
 
             if not makeSenseToTry then 
-                printfn "makes no sense" 
+                // printfn "makes no sense" 
                 None 
             else 
                 let mapAfterMove = moveBlizzards map
@@ -175,7 +182,7 @@ let part1 maxMinutes (input: string[]) =
                 let possiblePositions = 
                     getPossiblePositions currentPosition mapAfterMove
                     // filter out positions that were already visisted up to 4 times
-                    //|> Seq.filter (fun pos -> Seq.filter (fun hisPos -> hisPos = pos) historyOfActions |> Seq.length < 3)
+                    |> Seq.filter (fun pos -> Seq.filter (fun hisPos -> hisPos = pos) historyOfActions |> Seq.length < 4)
                 
                 // add a possibility to wait (if even possible)
                 let possiblePositions = 
@@ -188,9 +195,35 @@ let part1 maxMinutes (input: string[]) =
                             possiblePositions 
 
                 let mutable bestResult = bestResultSoFar
+                
                 for newPosition in possiblePositions do 
-                    let historyOfActions = Array.append historyOfActions [| newPosition |]
-                    let resultOption = walk newPosition mapAfterMove (minute + 1) historyOfActions bestResult
+
+                    let resultOption = 
+                        if cache.ContainsKey (newPosition, minute + 1) then 
+                            cache[(newPosition, minute + 1)]
+                        else 
+                            let historyOfActions = Array.append historyOfActions [| newPosition |]
+                            let resultOption = walk newPosition mapAfterMove (minute + 1) historyOfActions bestResult
+
+                            match resultOption with 
+                            | None -> 
+                                if cache.ContainsKey (newPosition, minute + 1) then 
+                                    ()
+                                else 
+                                    cache.Add((newPosition, minute + 1), None)
+                            | Some result -> 
+                                if cache.ContainsKey (newPosition, minute + 1) then 
+                                    let valueFromCacheOption = cache[(newPosition, minute + 1)]
+                                    match valueFromCacheOption with 
+                                    | None -> cache.Add((newPosition, minute + 1), resultOption)
+                                    | Some valueFromCache -> 
+                                        if result < valueFromCache then 
+                                            cache.Add((newPosition, minute + 1), resultOption)
+                                        else ()
+                                else 
+                                    cache.Add((newPosition, minute + 1), resultOption)
+                            
+                            resultOption
                     match resultOption with 
                     | None -> ()
                     | Some result -> 
@@ -199,20 +232,24 @@ let part1 maxMinutes (input: string[]) =
                         | None -> bestResult <- Some result 
                         | Some best -> if result < best then bestResult <- Some result else ()
 
+
                 bestResult
 
     let result = walk expeditionStart map 0 [| |] (Some maxMinutes)
 
     printfn "Finished!: %d" result.Value
+    result.Value
 
 
 let part1TestInput () = 
-    inputReader.readLines "Day24/testInput.txt" |> part1 19
-
+    let result = inputReader.readLines "Day24/testInput.txt" |> part1 19
+    if result <> 18 then failwith "wrong answer" else printfn "ok"
 
 let part1RealInput () = 
-    inputReader.readLines "Day24/input.txt" |> part1 497
+    let result = inputReader.readLines "Day24/input.txt" |> part1 497 // I was able to find out that 496 is one solution - so we can limit the results to something smaller than that
+    if result <> 238 then failwith "wrong answer" else printfn "ok"
+
 
 let run () = 
     part1TestInput () 
-   // part1RealInput ()
+    part1RealInput ()
