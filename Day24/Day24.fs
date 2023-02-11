@@ -8,6 +8,11 @@ type Cell =
     | Wall
     | Field of Field
 
+type Position = {
+    X: int;
+    Y: int;
+}
+
 let print (map: Cell[,]) (expeditionY, expeditionX) width height= 
     for y in 0 .. 1 .. height - 1 do 
         for x in 0 .. 1 .. width - 1 do 
@@ -21,11 +26,13 @@ let print (map: Cell[,]) (expeditionY, expeditionX) width height=
                     | _ -> printf "%d" field.Length
         printfn ""
 
-let isNotInitialPosition y x = 
-    if y = 0 && x = 1 then false else true
+let expeditionStart = {Y = 0; X = 1}
+
+let isInitialPosition pos = 
+    pos = expeditionStart
 
 let part1 () = 
-    let input = inputReader.readLines "Day24/testInput.txt"
+    let input = inputReader.readLines "Day24/input.txt"
 
     let width = input[0].Length
     let height = input.Length
@@ -77,24 +84,31 @@ let part1 () =
         let (targetY, targetX) = getPositionToUpdate blizzard x y width height
         (targetY, targetX)
     
-    let mutable expedition = (0, 1)
-
-    let getPossiblePositions (y,x) (map: Cell[,]) = 
+    let getPossiblePositions position (map: Cell[,]) = 
+        let x = position.X
+        let y = position.Y
         let allPosiblePositions = seq {
-            yield (y - 1, x)
-            yield (y, x - 1)
-            yield (y, x + 1)
-            yield (y + 1, x)
+            yield {Y = y - 1; X =  x}
+            yield {Y = y; X = x - 1}
+            yield {Y = y; X = x + 1}
+            yield {Y = y + 1; X = x}
         }
 
         let isAvailable cell = 
             match cell with 
             | Wall -> false
             | Field field -> if Array.length field = 0 then true else false
-        let isWithinMap y x = 
-            if x >= 0 && x < width && y >= 0 && y < height then true else false
 
-        allPosiblePositions |> Seq.filter (fun (y,x) -> isWithinMap y x && isAvailable map[y, x] && isNotInitialPosition y x)
+        let isWithinMap pos = 
+            if pos.X >= 0 && pos.X < width && pos.Y >= 0 && pos.Y < height then true else false
+
+        let positions = allPosiblePositions |> Seq.filter (fun pos -> isWithinMap pos && isAvailable map[pos.Y, pos.X] && isInitialPosition pos |> not)
+        if Seq.contains expeditionStart positions 
+            then 
+                failwith "WHAT?!"
+            else 
+                ()
+        positions
     
     let moveBlizzards (map: Cell[,]) = 
         let newMap = createEmptyMap ()
@@ -114,48 +128,52 @@ let part1 () =
                             newMap[y, x] <- Field newField
         newMap
 
-    let targetPosition = (height - 1, width - 2)
+    let targetPosition = {Y = height - 1; X =  width - 2}
 
-    let rec walk (expeditionY, expeditionX) map minute historyOfActions minMinuteSoFar = 
+    let rec walk expedition map minute historyOfActions minMinuteSoFar = 
 
-        if expeditionY = 0 && expeditionX = 1 && (Seq.length historyOfActions > 0) then failwith "You are not allowed to move back to starting pos" else ()
-        printfn "%d %d" expeditionX expeditionY
-        // print map expedition width height
+        if expedition.Y = 0 && expedition.X = 1 && (historyOfActions |> Seq.filter (fun historyPosition -> historyPosition.Y <> 0) |> Seq.length > 0) then 
+            failwith "You are not allowed to move back to starting pos" 
+            else 
+            ()
+        //printfn "(%d,%d). %d" expedition.X expedition.Y minute
 
-        if expeditionY + 1 = (targetPosition |> fst) && expeditionX = (targetPosition |> snd) then 
+        if expedition.Y + 1 = (targetPosition.Y) && expedition.X = (targetPosition.X) then 
+            printfn "FOUND %d" minute
             Some minute 
         else    
             let makeSenseToEvenTry = 
                 match minMinuteSoFar with 
-                | None -> true
+                | None -> 
+                    if minute < 30 then true else false
                 | Some minTime -> if minute > minTime then false else true
 
             if not makeSenseToEvenTry then None 
             else 
                 let mapAfterMove = moveBlizzards map
-                let possiblePositions = getPossiblePositions (expeditionY, expeditionX) mapAfterMove
+                let possiblePositions = getPossiblePositions expedition mapAfterMove
                 
-                let visitedTheSamePlaceFewTimes y x = 
+                let visitedTheSamePlaceFewTimes pos = 
                     historyOfActions 
-                    |> Seq.filter (fun (hisY,hisX) -> x = hisX && y = hisY)
+                    |> Seq.filter (fun hisPos -> pos = hisPos)
                     |> Seq.length < 5
 
                 // try to avoid walking in circles by checking if the same place has already been visited multiple times
                 let possiblePositions = 
                     if possiblePositions |> Seq.length = 0 then possiblePositions else 
-                    possiblePositions |> Seq.filter (fun (y,x) -> visitedTheSamePlaceFewTimes y x)
+                    possiblePositions |> Seq.filter (fun pos -> visitedTheSamePlaceFewTimes pos)
 
                 // add a possibility to wait (if even possible)
                 let possiblePositions = 
-                    match mapAfterMove[expeditionY, expeditionX] with 
+                    match mapAfterMove[expedition.Y, expedition.X] with 
                     | Wall -> failwith "WHAT?!"
                     | Field field -> 
                         if (field |> Array.length) = 0  then 
-                            Seq.append possiblePositions [| (expeditionY, expeditionX) |]
+                            Seq.append possiblePositions [| expedition |]
                         else 
                             possiblePositions 
 
-                let mutable bestMinute = None
+                let mutable bestMinute = minMinuteSoFar
                 for newPosition in possiblePositions do 
                     let historyOfActions = Array.append historyOfActions [| newPosition |]
                     let minutes = walk newPosition mapAfterMove (minute + 1) historyOfActions bestMinute
@@ -166,6 +184,6 @@ let part1 () =
                                 | Some best -> if m < best then bestMinute <- Some m else ()
                 bestMinute
 
-    let result = walk expedition map 1 [| |] None
+    let result = walk expeditionStart map 1 [| |] None
 
     printfn "%d" result.Value
