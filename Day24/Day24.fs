@@ -16,6 +16,12 @@ type Position = {
 }
 
 
+let getWidth (map: Cell[,]) = 
+    Array2D.length2 map
+
+let getHeight (map: Cell[,]) = 
+    Array2D.length1 map
+
 let printPos position = 
     printf "(%d,%d)" position.X position.Y
 
@@ -24,7 +30,9 @@ let printPositions (history: Position[]) =
         printPos item
         printf ","
 
-let print (map: Cell[,]) (expeditionY, expeditionX) width height= 
+let print (map: Cell[,]) expedition = 
+    let width = getWidth map
+    let height = getHeight map
     for y in 0 .. 1 .. height - 1 do 
         for x in 0 .. 1 .. width - 1 do 
             let cell = map[y, x] 
@@ -32,17 +40,10 @@ let print (map: Cell[,]) (expeditionY, expeditionX) width height=
             | Wall -> printf "#"
             | Field field -> 
                 match List.ofArray field with 
-                    | [] -> if expeditionY = y && expeditionX = x then printf "E" else printf "."
+                    | [] -> if expedition.Y = y && expedition.X = x then printf "E" else printf "."
                     | x::[] -> printf "%c" x
                     | _ -> printf "%d" field.Length
         printfn ""
-
-let expeditionStart = {Y = 0; X = 1}
-
-
-let isInitialPosition pos = 
-    pos = expeditionStart
-
 
 let createEmptyMap width height = 
     let getCell y x = 
@@ -83,15 +84,7 @@ let moveBlizzard map blizzard y x  width height =
     let (targetY, targetX) = getPositionToUpdate map blizzard x y width height
     (targetY, targetX)
 
-
-let getWidth (map: Cell[,]) = 
-    Array2D.length2 map
-
-let getHeight (map: Cell[,]) = 
-    Array2D.length1 map
-
-
-let getPossiblePositions position (map: Cell[,]) =
+let getPossiblePositions position (map: Cell[,]) expeditionStart =
     let width = getWidth map
     let height = getHeight map
     let x = position.X
@@ -111,7 +104,7 @@ let getPossiblePositions position (map: Cell[,]) =
     let isWithinMap pos = 
         if pos.X >= 0 && pos.X < width && pos.Y >= 0 && pos.Y < height then true else false
 
-    let positions = allPosiblePositions |> Seq.filter (fun pos -> isWithinMap pos && isAvailable map[pos.Y, pos.X] && isInitialPosition pos |> not)
+    let positions = allPosiblePositions |> Seq.filter (fun pos -> isWithinMap pos && isAvailable map[pos.Y, pos.X] && expeditionStart = pos |> not)
     if Seq.contains expeditionStart positions 
         then 
             failwith "WHAT?!"
@@ -141,7 +134,7 @@ let moveBlizzards (map: Cell[,]) =
                         newMap[y, x] <- Field newField
     newMap
 
-let rec walk currentPosition map minute historyOfActions bestResultSoFar targetPosition (cache: Dictionary<(Position * int), option<int>> )= 
+let rec walk currentPosition map minute historyOfActions bestResultSoFar targetPosition (cache: Dictionary<(Position * int), option<int>> ) expeditionStart = 
 
     if currentPosition.Y = 0 && currentPosition.X = 1 && (historyOfActions |> Seq.filter (fun historyPosition -> historyPosition.Y <> 0) |> Seq.length > 0) then 
         failwith "You are not allowed to move back to starting pos" 
@@ -179,7 +172,7 @@ let rec walk currentPosition map minute historyOfActions bestResultSoFar targetP
 
             // find all possible moves from currentPosition
             let possiblePositions = 
-                getPossiblePositions currentPosition mapAfterMove
+                getPossiblePositions currentPosition mapAfterMove expeditionStart
                 // filter out positions that were already visisted up to 4 times
                 |> Seq.filter (fun pos -> Seq.filter (fun hisPos -> hisPos = pos) historyOfActions |> Seq.length < 4)
             
@@ -202,7 +195,7 @@ let rec walk currentPosition map minute historyOfActions bestResultSoFar targetP
                         cache[(newPosition, minute + 1)]
                     else 
                         let historyOfActions = Array.append historyOfActions [| newPosition |]
-                        let resultOption = walk newPosition mapAfterMove (minute + 1) historyOfActions bestResult targetPosition cache
+                        let resultOption = walk newPosition mapAfterMove (minute + 1) historyOfActions bestResult targetPosition cache expeditionStart
 
                         match resultOption with 
                         | None -> 
@@ -250,13 +243,41 @@ let part1 maxMinutes (input: string[]) =
     let width = input[0].Length
     let height = input.Length
     let targetPosition = {Y = height - 1; X =  width - 2}
+    let expeditionStart = {Y = 0; X = 1}
+    
     let map = parseMap input
     let cache = new Dictionary<(Position * int), option<int>>()
-
-    let result = walk expeditionStart map 0 [| |] (Some maxMinutes) targetPosition cache
+    
+    let result = walk expeditionStart map 0 [| |] (Some maxMinutes) targetPosition cache expeditionStart
 
     printfn "Finished!: %d" result.Value
     result.Value
+
+let part2 maxMinutes (input: string[]) = 
+
+    let width = input[0].Length
+    let height = input.Length
+    let map = parseMap input
+    let targetPosition = {Y = height - 1; X =  width - 2}
+    let expeditionStart = {Y = 0; X = 1}
+
+    let cache = new Dictionary<(Position * int), option<int>>()
+
+    let minutesToTarget = walk expeditionStart map 0 [| |] (Some maxMinutes) targetPosition cache expeditionStart
+    
+    printfn "Finished going to target first time!: %d" minutesToTarget.Value
+
+    let mutable map = map
+    for i in 1 .. 1 .. minutesToTarget.Value do 
+        map <- moveBlizzards map
+
+    print map targetPosition
+
+    let targetPosition = {Y = 0; X =  1}
+    let expeditionStart = {Y = height - 1; X =  width - 2}
+    let minutesToTarget = walk expeditionStart map 0 [| |] (Some maxMinutes) targetPosition cache expeditionStart
+
+    minutesToTarget.Value
 
 
 let part1TestInput () = 
@@ -267,7 +288,12 @@ let part1RealInput () =
     let result = inputReader.readLines "Day24/input.txt" |> part1 497 // I was able to find out that 496 is one solution - so we can limit the results to something smaller than that
     if result <> 238 then failwith "wrong answer" else printfn "ok"
 
+let part2TestInput () = 
+    let result = inputReader.readLines "Day24/testInput.txt" |> part2 24
+    if result <> 54 then failwith "wrong answer" else printfn "ok"
+
 
 let run () = 
-    part1TestInput () 
-    part1RealInput ()
+    //part1TestInput () 
+    //part1RealInput ()
+    part2TestInput ()
