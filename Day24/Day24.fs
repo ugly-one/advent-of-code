@@ -128,14 +128,101 @@ let moveBlizzards (map: Cell[,]) width height =
                         newMap[y, x] <- Field newField
     newMap
 
+let rec walk currentPosition map minute historyOfActions bestResultSoFar targetPosition width height (cache: Dictionary<(Position * int), option<int>> )= 
 
-let part1 maxMinutes (input: string[]) = 
+    if currentPosition.Y = 0 && currentPosition.X = 1 && (historyOfActions |> Seq.filter (fun historyPosition -> historyPosition.Y <> 0) |> Seq.length > 0) then 
+        failwith "You are not allowed to move back to starting pos" 
+        else 
+        ()
+    // printPos currentPosition 
 
-    let width = input[0].Length
-    let height = input.Length
-    let targetPosition = {Y = height - 1; X =  width - 2}
-    let createEmptyMap () = createEmptyMap width height
-    let mutable map = createEmptyMap ()
+    //printfn "(%d,%d). %d" expedition.X expedition.Y minute
+    // historyOfActions |> printPositions 
+    // printfn ""
+    // printfn "" 
+
+    if currentPosition.Y + 1 = targetPosition.Y && currentPosition.X = targetPosition.X then 
+        // it's enough to be in the position right above the target
+        printfn "FOUND %d" (minute + 1)
+        printfn ""
+        Some (minute + 1)
+    else    
+        let makeSenseToTry = 
+
+            let calcuateDistanceToTarget position = 
+                targetPosition.X - position.X + targetPosition.Y - position.Y
+
+            match bestResultSoFar with 
+            | None -> true
+            | Some bestResult -> 
+                let tooFarToReachTargetAndBeatCurrentBestResult = calcuateDistanceToTarget currentPosition + minute >= bestResult
+                if tooFarToReachTargetAndBeatCurrentBestResult then false else true
+
+        if not makeSenseToTry then 
+            // printfn "makes no sense" 
+            None 
+        else 
+            let mapAfterMove = moveBlizzards map width height
+
+            // find all possible moves from currentPosition
+            let possiblePositions = 
+                getPossiblePositions currentPosition mapAfterMove width height
+                // filter out positions that were already visisted up to 4 times
+                |> Seq.filter (fun pos -> Seq.filter (fun hisPos -> hisPos = pos) historyOfActions |> Seq.length < 4)
+            
+            // add a possibility to wait (if even possible)
+            let possiblePositions = 
+                match mapAfterMove[currentPosition.Y, currentPosition.X] with 
+                | Wall -> failwith "WHAT?!"
+                | Field field -> 
+                    if (field |> Array.length) = 0  then 
+                        Seq.append possiblePositions [| currentPosition |]
+                    else 
+                        possiblePositions 
+
+            let mutable bestResult = bestResultSoFar
+            
+            for newPosition in possiblePositions do 
+
+                let resultOption = 
+                    if cache.ContainsKey (newPosition, minute + 1) then 
+                        cache[(newPosition, minute + 1)]
+                    else 
+                        let historyOfActions = Array.append historyOfActions [| newPosition |]
+                        let resultOption = walk newPosition mapAfterMove (minute + 1) historyOfActions bestResult targetPosition width height cache
+
+                        match resultOption with 
+                        | None -> 
+                            if cache.ContainsKey (newPosition, minute + 1) then 
+                                ()
+                            else 
+                                cache.Add((newPosition, minute + 1), None)
+                        | Some result -> 
+                            if cache.ContainsKey (newPosition, minute + 1) then 
+                                let valueFromCacheOption = cache[(newPosition, minute + 1)]
+                                match valueFromCacheOption with 
+                                | None -> cache.Add((newPosition, minute + 1), resultOption)
+                                | Some valueFromCache -> 
+                                    if result < valueFromCache then 
+                                        cache.Add((newPosition, minute + 1), resultOption)
+                                    else ()
+                            else 
+                                cache.Add((newPosition, minute + 1), resultOption)
+                        
+                        resultOption
+                match resultOption with 
+                | None -> ()
+                | Some result -> 
+                    // update bestMinute if we found a shorter path
+                    match bestResult with 
+                    | None -> bestResult <- Some result 
+                    | Some best -> if result < best then bestResult <- Some result else ()
+
+
+            bestResult
+
+let parseMap width height (input: string[]) = 
+    let map = createEmptyMap width height
 
     for y in 0 .. 1 .. input.Length - 1 do 
         for x in 0 .. 1 .. input[0].Length - 1 do 
@@ -143,103 +230,17 @@ let part1 maxMinutes (input: string[]) =
             let char = row[x]
             let cell = charToBlizzard char
             map[y,x] <- cell
+    map 
 
+let part1 maxMinutes (input: string[]) = 
+
+    let width = input[0].Length
+    let height = input.Length
+    let targetPosition = {Y = height - 1; X =  width - 2}
+    let map = parseMap width height input
     let cache = new Dictionary<(Position * int), option<int>>()
 
-    let rec walk currentPosition map minute historyOfActions bestResultSoFar = 
-
-        if currentPosition.Y = 0 && currentPosition.X = 1 && (historyOfActions |> Seq.filter (fun historyPosition -> historyPosition.Y <> 0) |> Seq.length > 0) then 
-            failwith "You are not allowed to move back to starting pos" 
-            else 
-            ()
-        // printPos currentPosition 
-
-        //printfn "(%d,%d). %d" expedition.X expedition.Y minute
-        // historyOfActions |> printPositions 
-        // printfn ""
-        // printfn "" 
-
-        if currentPosition.Y + 1 = targetPosition.Y && currentPosition.X = targetPosition.X then 
-            // it's enough to be in the position right above the target
-            printfn "FOUND %d" (minute + 1)
-            printfn ""
-            Some (minute + 1)
-        else    
-            let makeSenseToTry = 
-
-                let calcuateDistanceToTarget position = 
-                    targetPosition.X - position.X + targetPosition.Y - position.Y
-
-                match bestResultSoFar with 
-                | None -> true
-                | Some bestResult -> 
-                    let tooFarToReachTargetAndBeatCurrentBestResult = calcuateDistanceToTarget currentPosition + minute >= bestResult
-                    if tooFarToReachTargetAndBeatCurrentBestResult then false else true
-
-            if not makeSenseToTry then 
-                // printfn "makes no sense" 
-                None 
-            else 
-                let mapAfterMove = moveBlizzards map width height
-
-                // find all possible moves from currentPosition
-                let possiblePositions = 
-                    getPossiblePositions currentPosition mapAfterMove width height
-                    // filter out positions that were already visisted up to 4 times
-                    |> Seq.filter (fun pos -> Seq.filter (fun hisPos -> hisPos = pos) historyOfActions |> Seq.length < 4)
-                
-                // add a possibility to wait (if even possible)
-                let possiblePositions = 
-                    match mapAfterMove[currentPosition.Y, currentPosition.X] with 
-                    | Wall -> failwith "WHAT?!"
-                    | Field field -> 
-                        if (field |> Array.length) = 0  then 
-                            Seq.append possiblePositions [| currentPosition |]
-                        else 
-                            possiblePositions 
-
-                let mutable bestResult = bestResultSoFar
-                
-                for newPosition in possiblePositions do 
-
-                    let resultOption = 
-                        if cache.ContainsKey (newPosition, minute + 1) then 
-                            cache[(newPosition, minute + 1)]
-                        else 
-                            let historyOfActions = Array.append historyOfActions [| newPosition |]
-                            let resultOption = walk newPosition mapAfterMove (minute + 1) historyOfActions bestResult
-
-                            match resultOption with 
-                            | None -> 
-                                if cache.ContainsKey (newPosition, minute + 1) then 
-                                    ()
-                                else 
-                                    cache.Add((newPosition, minute + 1), None)
-                            | Some result -> 
-                                if cache.ContainsKey (newPosition, minute + 1) then 
-                                    let valueFromCacheOption = cache[(newPosition, minute + 1)]
-                                    match valueFromCacheOption with 
-                                    | None -> cache.Add((newPosition, minute + 1), resultOption)
-                                    | Some valueFromCache -> 
-                                        if result < valueFromCache then 
-                                            cache.Add((newPosition, minute + 1), resultOption)
-                                        else ()
-                                else 
-                                    cache.Add((newPosition, minute + 1), resultOption)
-                            
-                            resultOption
-                    match resultOption with 
-                    | None -> ()
-                    | Some result -> 
-                        // update bestMinute if we found a shorter path
-                        match bestResult with 
-                        | None -> bestResult <- Some result 
-                        | Some best -> if result < best then bestResult <- Some result else ()
-
-
-                bestResult
-
-    let result = walk expeditionStart map 0 [| |] (Some maxMinutes)
+    let result = walk expeditionStart map 0 [| |] (Some maxMinutes) targetPosition width height cache
 
     printfn "Finished!: %d" result.Value
     result.Value
