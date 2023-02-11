@@ -174,7 +174,7 @@ let rec walk currentPosition map minute historyOfActions bestResultSoFar targetP
             let possiblePositions = 
                 getPossiblePositions currentPosition mapAfterMove expeditionStart
                 // filter out positions that were already visisted up to 4 times
-                |> Seq.filter (fun pos -> Seq.filter (fun hisPos -> hisPos = pos) historyOfActions |> Seq.length < 4)
+                |> Seq.filter (fun pos -> Seq.filter (fun hisPos -> hisPos = pos) historyOfActions |> Seq.length < 3)
             
             // add a possibility to wait (if even possible)
             let possiblePositions = 
@@ -312,8 +312,12 @@ let part2TestInput () =
     let result = inputReader.readLines "Day24/testInput.txt" |> part2 24
     if result <> 54 then failwith "wrong answer" else printfn "ok"
 
+let part2RealInput () = 
+    let result = inputReader.readLines "Day24/input.txt" |> part2 500
+    if result <> 9999 then failwithf "wrong answer %d" result else printfn "ok"
 
 let run () = 
     // part1TestInput () 
     // part1RealInput ()
     part2TestInput ()
+    part2RealInput ()
