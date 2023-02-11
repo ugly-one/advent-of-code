@@ -83,7 +83,17 @@ let moveBlizzard map blizzard y x  width height =
     let (targetY, targetX) = getPositionToUpdate map blizzard x y width height
     (targetY, targetX)
 
-let getPossiblePositions position (map: Cell[,]) width height = 
+
+let getWidth (map: Cell[,]) = 
+    Array2D.length2 map
+
+let getHeight (map: Cell[,]) = 
+    Array2D.length1 map
+
+
+let getPossiblePositions position (map: Cell[,]) =
+    let width = getWidth map
+    let height = getHeight map
     let x = position.X
     let y = position.Y
     let allPosiblePositions = seq {
@@ -109,8 +119,11 @@ let getPossiblePositions position (map: Cell[,]) width height =
             ()
     positions
 
+let moveBlizzards (map: Cell[,]) = 
 
-let moveBlizzards (map: Cell[,]) width height = 
+    let width = getWidth map
+    let height = getHeight map
+
     let newMap = createEmptyMap width height
 
     for y in 1 .. 1 .. height - 2 do 
@@ -128,7 +141,7 @@ let moveBlizzards (map: Cell[,]) width height =
                         newMap[y, x] <- Field newField
     newMap
 
-let rec walk currentPosition map minute historyOfActions bestResultSoFar targetPosition width height (cache: Dictionary<(Position * int), option<int>> )= 
+let rec walk currentPosition map minute historyOfActions bestResultSoFar targetPosition (cache: Dictionary<(Position * int), option<int>> )= 
 
     if currentPosition.Y = 0 && currentPosition.X = 1 && (historyOfActions |> Seq.filter (fun historyPosition -> historyPosition.Y <> 0) |> Seq.length > 0) then 
         failwith "You are not allowed to move back to starting pos" 
@@ -162,11 +175,11 @@ let rec walk currentPosition map minute historyOfActions bestResultSoFar targetP
             // printfn "makes no sense" 
             None 
         else 
-            let mapAfterMove = moveBlizzards map width height
+            let mapAfterMove = moveBlizzards map
 
             // find all possible moves from currentPosition
             let possiblePositions = 
-                getPossiblePositions currentPosition mapAfterMove width height
+                getPossiblePositions currentPosition mapAfterMove
                 // filter out positions that were already visisted up to 4 times
                 |> Seq.filter (fun pos -> Seq.filter (fun hisPos -> hisPos = pos) historyOfActions |> Seq.length < 4)
             
@@ -189,7 +202,7 @@ let rec walk currentPosition map minute historyOfActions bestResultSoFar targetP
                         cache[(newPosition, minute + 1)]
                     else 
                         let historyOfActions = Array.append historyOfActions [| newPosition |]
-                        let resultOption = walk newPosition mapAfterMove (minute + 1) historyOfActions bestResult targetPosition width height cache
+                        let resultOption = walk newPosition mapAfterMove (minute + 1) historyOfActions bestResult targetPosition cache
 
                         match resultOption with 
                         | None -> 
@@ -221,8 +234,8 @@ let rec walk currentPosition map minute historyOfActions bestResultSoFar targetP
 
             bestResult
 
-let parseMap width height (input: string[]) = 
-    let map = createEmptyMap width height
+let parseMap (input: string[]) = 
+    let map = createEmptyMap input[0].Length input.Length
 
     for y in 0 .. 1 .. input.Length - 1 do 
         for x in 0 .. 1 .. input[0].Length - 1 do 
@@ -237,10 +250,10 @@ let part1 maxMinutes (input: string[]) =
     let width = input[0].Length
     let height = input.Length
     let targetPosition = {Y = height - 1; X =  width - 2}
-    let map = parseMap width height input
+    let map = parseMap input
     let cache = new Dictionary<(Position * int), option<int>>()
 
-    let result = walk expeditionStart map 0 [| |] (Some maxMinutes) targetPosition width height cache
+    let result = walk expeditionStart map 0 [| |] (Some maxMinutes) targetPosition cache
 
     printfn "Finished!: %d" result.Value
     result.Value
