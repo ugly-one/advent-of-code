@@ -90,11 +90,15 @@ let getPossiblePositions position (map: Cell[,]) expeditionStart =
     let x = position.X
     let y = position.Y
     let allPosiblePositions = seq {
+
         yield {Y = y; X = x + 1}
         yield {Y = y + 1; X = x}
         yield {Y = y - 1; X =  x}
         yield {Y = y; X = x - 1}
     }
+
+    // if we started at the top of the map, let's prioritize new positions that lead us down/right. Otherwise, let's try to move up/left
+    let allPosiblePositions = if expeditionStart.Y = 0 then allPosiblePositions else Seq.rev allPosiblePositions
 
     let isAvailable cell = 
         match cell with 
@@ -148,7 +152,6 @@ let rec walk currentPosition map minute historyOfActions bestResultSoFar targetP
     // printfn "" 
 
     if currentPosition.Y = targetPosition.Y && currentPosition.X = targetPosition.X then 
-        // it's enough to be in the position right above the target
         printfn "FOUND %d" (minute)
         printfn ""
         Some (minute)
@@ -176,6 +179,8 @@ let rec walk currentPosition map minute historyOfActions bestResultSoFar targetP
                 // filter out positions that were already visisted up to 4 times
                 |> Seq.filter (fun pos -> Seq.filter (fun hisPos -> hisPos = pos) historyOfActions |> Seq.length < 3)
             
+            
+
             // add a possibility to wait (if even possible)
             let possiblePositions = 
                 match mapAfterMove[currentPosition.Y, currentPosition.X] with 
@@ -313,11 +318,12 @@ let part2TestInput () =
     if result <> 54 then failwith "wrong answer" else printfn "ok"
 
 let part2RealInput () = 
-    let result = inputReader.readLines "Day24/input.txt" |> part2 500
-    if result <> 9999 then failwithf "wrong answer %d" result else printfn "ok"
+    let result = inputReader.readLines "Day24/input.txt" |> part2 300
+    if result <> 751 then failwithf "wrong answer %d" result else printfn "ok"
 
 let run () = 
     // part1TestInput () 
     // part1RealInput ()
     part2TestInput ()
     part2RealInput ()
+    // TODO there is definitely room for performance improvement here :)
