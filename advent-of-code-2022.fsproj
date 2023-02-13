@@ -136,6 +136,13 @@
     <Content Include="Day24\input.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Compile Include="Day25\Day25.fs"/>
+    <Content Include="Day25\testInput.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Day25\input.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Compile Include="Performance.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
