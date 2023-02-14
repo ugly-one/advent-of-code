@@ -53,23 +53,10 @@ let pow5 y =
     let y = y |> float
     Math.Pow (five, y) |> int
 
-let rec decimalToSnafu (decimal: int) = 
-    let mutable numberOfPlaces = 1
-    let max = (pow5 (numberOfPlaces - 1)) * 2
-    if decimal < max then 
-        toSnafuChar decimal
-    else 
-        numberOfPlaces <- numberOfPlaces + 1
-        //1==-=2===0-=1100--11
-        failwith "NOT DONE YET"   
 
 let testSnafuToDecimal snafu (expected: uint64) = 
     let decimal = snafuToDecimal snafu
     if decimal <> expected then failwithf "wrong. %s [SNAFU] = %d [DECIMAL]. %d is not correct" snafu expected decimal else printfn "OK"
-
-let testDecimalToSnafu decimal expected = 
-    let snafu = decimalToSnafu decimal
-    if snafu <> expected then failwithf "wrong. %s [SNAFU] = %d [DECIMAL]. %s is not correct" expected decimal snafu else printfn "OK"
 
 let tryGetPlace (snafu: string) (index: int) = 
     if index >= String.length snafu then None else 
@@ -124,13 +111,20 @@ let runSum input count expectedSnafu expectedDecimal=
     printfn "Result as decimal: %d. Expected decimal: %d" resultAsDecimal expectedDecimal
     if result <> expectedSnafu then failwithf "wrong. Expected %s. Observed: %s" expectedSnafu result else printfn "OK"
 
+let testSum snafu1 snafu2  = 
+
+    let result = addTwoSnafu snafu1 snafu2
+    let decimal1 = snafuToDecimal snafu1
+    let decimal2 = snafuToDecimal snafu2
+    let expectedDecimal = decimal1 + decimal2
+    printfn "Snafu: %s" result
+    let observedDecimal = snafuToDecimal result
+    printfn "Expected decimal: %d" expectedDecimal
+    printfn "Observed decimal: %d" observedDecimal
+    if expectedDecimal <> observedDecimal then failwithf "%s is not correct (%d). Expected %d" result observedDecimal expectedDecimal else printf "OK"
 
 let run () = 
     
-    // testDecimalToSnafu 1 "1"
-    // testDecimalToSnafu 3 "1="
-    // testDecimalToSnafu 10 "20"
-
     let input = inputReader.readLines "Day25/testInput.txt"
     let runSum = runSum input
     
@@ -143,25 +137,7 @@ let run () =
     if result <> "10-1" then failwith "unable to sum 84 and 37"
     runSum 6 "10-1" 121
 
-    let result = addTwoSnafu "2=" "2-"
-
     runSum (Array.length input) "2=-1=0" 4890
 
-    let result = addTwoSnafu "1=" "1-"
-    let decimal1 = snafuToDecimal "1="
-    let decimal2 = snafuToDecimal "1-"
-    let expectedDecimal = decimal1 + decimal2
-    printfn "Snafu: %s" result
-    let observedDecimal = snafuToDecimal result
-    printfn "Expected decimal: %d" expectedDecimal
-    printfn "Observed decimal: %d" observedDecimal
-
-    let result = addTwoSnafu "1=" "1="
-    let decimal1 = snafuToDecimal "1="
-    let decimal2 = snafuToDecimal "1="
-    let expectedDecimal = decimal1 + decimal2
-    printfn "Snafu: %s" result
-    let observedDecimal = snafuToDecimal result
-    printfn "Expected decimal: %d" expectedDecimal
-    printfn "Observed decimal: %d" observedDecimal
-
+    testSum "1=" "1-"
+    testSum "1=" "1="
