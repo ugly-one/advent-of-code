@@ -85,15 +85,19 @@ let addTwoSnafu snafu1 snafu2 =
                     (-2, 1) 
                 elif columnSum = 4 then 
                     (-1, 1)
+                elif columnSum = 5 then 
+                    (0, 1)
                 else 
-                    failwith "he?!"
+                    failwithf "he?! %d %s %s" columnSum snafu1 snafu2
             elif columnSum < -2 then 
                 if columnSum = -3 then 
                     (2, -1)
                 elif columnSum = -4 then 
                     (1, -1)
+                elif columnSum = -5 then 
+                    (0, -1)
                 else 
-                    failwith "he?!"
+                    failwithf "he?! %d %s %s" columnSum snafu1 snafu2
             else 
                 (columnSum, 0)
         result <- (columnResult |> toSnafuChar) + result
@@ -121,23 +125,30 @@ let testSum snafu1 snafu2  =
     let observedDecimal = snafuToDecimal result
     printfn "Expected decimal: %d" expectedDecimal
     printfn "Observed decimal: %d" observedDecimal
-    if expectedDecimal <> observedDecimal then failwithf "%s is not correct (%d). Expected %d" result observedDecimal expectedDecimal else printf "OK"
+    if expectedDecimal <> observedDecimal then failwithf "%s is not correct (%d). Expected %d" result observedDecimal expectedDecimal else printfn "OK"
 
 let run () = 
     
     let input = inputReader.readLines "Day25/testInput.txt"
-    let runSum = runSum input
+    let runSumTestInput = runSum input
     
-    runSum 1 "21" 11
-    runSum 2 "1=-" 14
-    runSum 3 "1-1" 21
-    runSum 4 "21=" 53
-    runSum 5 "1=2-" 84
+    runSumTestInput 1 "21" 11
+    runSumTestInput 2 "1=-" 14
+    runSumTestInput 3 "1-1" 21
+    runSumTestInput 4 "21=" 53
+    runSumTestInput 5 "1=2-" 84
     let result = addTwoSnafu "1=2-" "122"
     if result <> "10-1" then failwith "unable to sum 84 and 37"
-    runSum 6 "10-1" 121
+    runSumTestInput 6 "10-1" 121
 
-    runSum (Array.length input) "2=-1=0" 4890
+    runSumTestInput (Array.length input) "2=-1=0" 4890
 
     testSum "1=" "1-"
     testSum "1=" "1="
+
+    testSum "21" "22"
+
+    let input = inputReader.readLines "Day25/input.txt"
+    runSum input (Array.length input) "2=-0=01----22-0-1-10" 0
+
+
