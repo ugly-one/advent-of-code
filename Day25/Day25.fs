@@ -93,11 +93,22 @@ let addTwoSnafu snafu1 snafu2 =
                 columnSum <- columnSum + number
         
         let (columnResult, columnOverflow) = 
-            if columnSum > 2 
-            then (-2, columnSum - 2) 
-            elif columnSum < -2 
-            then (2, columnSum + 2)
-            else (columnSum, 0)
+            if columnSum > 2 then 
+                if columnSum = 3 then 
+                    (-2, 1) 
+                elif columnSum = 4 then 
+                    (-1, 1)
+                else 
+                    failwith "he?!"
+            elif columnSum < -2 then 
+                if columnSum = -3 then 
+                    (2, -1)
+                elif columnSum = -4 then 
+                    (1, -1)
+                else 
+                    failwith "he?!"
+            else 
+                (columnSum, 0)
         result <- (columnResult |> toSnafuChar) + result
         columnSum <- columnOverflow
 
@@ -119,7 +130,6 @@ let run () =
     // testDecimalToSnafu 1 "1"
     // testDecimalToSnafu 3 "1="
     // testDecimalToSnafu 10 "20"
-    let result = addTwoSnafu "2=" "2-"
 
     let input = inputReader.readLines "Day25/testInput.txt"
     let runSum = runSum input
@@ -129,12 +139,29 @@ let run () =
     runSum 3 "1-1" 21
     runSum 4 "21=" 53
     runSum 5 "1=2-" 84
-
     let result = addTwoSnafu "1=2-" "122"
     if result <> "10-1" then failwith "unable to sum 84 and 37"
-
     runSum 6 "10-1" 121
 
+    let result = addTwoSnafu "2=" "2-"
 
     runSum (Array.length input) "2=-1=0" 4890
+
+    let result = addTwoSnafu "1=" "1-"
+    let decimal1 = snafuToDecimal "1="
+    let decimal2 = snafuToDecimal "1-"
+    let expectedDecimal = decimal1 + decimal2
+    printfn "Snafu: %s" result
+    let observedDecimal = snafuToDecimal result
+    printfn "Expected decimal: %d" expectedDecimal
+    printfn "Observed decimal: %d" observedDecimal
+
+    let result = addTwoSnafu "1=" "1="
+    let decimal1 = snafuToDecimal "1="
+    let decimal2 = snafuToDecimal "1="
+    let expectedDecimal = decimal1 + decimal2
+    printfn "Snafu: %s" result
+    let observedDecimal = snafuToDecimal result
+    printfn "Expected decimal: %d" expectedDecimal
+    printfn "Observed decimal: %d" observedDecimal
 
