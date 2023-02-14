@@ -48,9 +48,20 @@ let snafuToDecimal (snafu: string) : uint64 =
     let decimal = Seq.fold (fun (index: uint64, sum: uint64) char -> (index + (1UL), sum + (get index char))) (0UL, 0UL) reversed
     decimal |> snd
 
-let rec decimalToSnafu (decimal: uint64) = 
-    if decimal = 0UL then "" else 
-        decimalToSnafu (decimal/5UL) + ((decimal % 5UL) |> string)
+let pow5 y = 
+    let five = 5 |> float
+    let y = y |> float
+    Math.Pow (five, y) |> int
+
+let rec decimalToSnafu (decimal: int) = 
+    let mutable numberOfPlaces = 1
+    let max = (pow5 (numberOfPlaces - 1)) * 2
+    if decimal < max then 
+        toSnafuChar decimal
+    else 
+        numberOfPlaces <- numberOfPlaces + 1
+        //1==-=2===0-=1100--11
+        failwith "NOT DONE YET"   
 
 let testSnafuToDecimal snafu (expected: uint64) = 
     let decimal = snafuToDecimal snafu
@@ -65,12 +76,8 @@ let tryGetPlace (snafu: string) (index: int) =
         let reversed = Seq.rev snafu |> Array.ofSeq
         Some (reversed[index])
 
-let run () = 
-    
-    let input = inputReader.readLines "Day25/testInput.txt"
-
-   // let input = [| "122"; "1"|]
-
+let addTwoSnafu snafu1 snafu2 = 
+    let input = [| snafu1; snafu2 |]
     let lastIndex = input |> Seq.fold (fun max line -> if String.length line > max then String.length line else max) 0
 
     let mutable result = ""
@@ -85,11 +92,49 @@ let run () =
                 let number = toNumber place
                 columnSum <- columnSum + number
         
-        let columnResult = if columnSum > 2 then -2 else columnSum
-        let overflowOption = if columnSum > 2 then Some (columnSum - 2) else None
+        let (columnResult, columnOverflow) = 
+            if columnSum > 2 
+            then (-2, columnSum - 2) 
+            elif columnSum < -2 
+            then (2, columnSum + 2)
+            else (columnSum, 0)
         result <- (columnResult |> toSnafuChar) + result
-        match overflowOption with 
-        | None -> columnSum <- 0
-        | Some overflow -> columnSum <- overflow
+        columnSum <- columnOverflow
 
-    printf "%s" result
+    if columnSum > 0 then 
+        result <- (columnSum |> toSnafuChar) + result
+    else ()
+    result
+
+let runSum input count expectedSnafu expectedDecimal= 
+    let input = input |> Array.take count
+    let result = input |> Array.fold (fun sum line -> addTwoSnafu sum line) "0"
+    let resultAsDecimal = snafuToDecimal result
+    printfn "Result as decimal: %d. Expected decimal: %d" resultAsDecimal expectedDecimal
+    if result <> expectedSnafu then failwithf "wrong. Expected %s. Observed: %s" expectedSnafu result else printfn "OK"
+
+
+let run () = 
+    
+    // testDecimalToSnafu 1 "1"
+    // testDecimalToSnafu 3 "1="
+    // testDecimalToSnafu 10 "20"
+    let result = addTwoSnafu "2=" "2-"
+
+    let input = inputReader.readLines "Day25/testInput.txt"
+    let runSum = runSum input
+    
+    runSum 1 "21" 11
+    runSum 2 "1=-" 14
+    runSum 3 "1-1" 21
+    runSum 4 "21=" 53
+    runSum 5 "1=2-" 84
+
+    let result = addTwoSnafu "1=2-" "122"
+    if result <> "10-1" then failwith "unable to sum 84 and 37"
+
+    runSum 6 "10-1" 121
+
+
+    runSum (Array.length input) "2=-1=0" 4890
+
