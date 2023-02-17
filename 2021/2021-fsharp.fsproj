@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <RootNamespace>_2021_fsharp</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Day9/Day9_input.fs" />
+    <Compile Include="Day9/Day9.fs" />
+    <Compile Include="Day1/Day1_input.fs" />
+    <Compile Include="Day1/Day1.fs" />
+    <Compile Include="Day2/Day2_input.fs" />
+    <Compile Include="Day2/Day2.fs" />
+    <Compile Include="Day3/Day3_input.fs" />
+    <Compile Include="Day3/Day3.fs" />
+    <Compile Include="Day4\Day4.fs" />
+    <Content Include="Day4\testInput.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Day4\input.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="Day5\Day5.fs" />
+    <Content Include="Day5\input.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="Day6\Day6.fs"/>
+    <Content Include="Day6\input.txt"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></Content>
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+</Project>
