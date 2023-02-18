@@ -69,7 +69,12 @@ let parseLine (line: string)  =
       {ResultWire = resultWire; Operation = AssignOperaton leftOperator}
    else 
       failwith "WHAT"
-      
+
+let change result optionWire = 
+   match optionWire with 
+   | None -> None
+   | Some wire -> Some {ResultWire = wire.ResultWire; Operation = AssignOperaton (Number result) }   
+
 let rec getValue (wire: Instruction) (allInstructions: Map<string,Instruction>) =
    
    let (result, newAll) = 
@@ -107,12 +112,8 @@ let rec getValue (wire: Instruction) (allInstructions: Map<string,Instruction>) 
             | "LSHIFT" -> left_ firstValue secondValue 
             | _ -> failwith "HE?!"
          (r, newAll)
-
-   let change optionWire = 
-      match optionWire with 
-      | None -> None
-      | Some wire -> Some {ResultWire = wire.ResultWire; Operation = AssignOperaton (Number result) }
-
+   
+   let change wire = change result wire
    let newAll = newAll |> Map.change wire.ResultWire change
    (result, newAll)
    
@@ -130,6 +131,13 @@ let run () =
    let aWire = instructions |> Map.find "a"
 
    
-   let (result, newAll) = getValue aWire instructions
+   let (result, _) = getValue aWire instructions
    printfn "%d" result
-   result
+
+   let change wire = change result wire
+   let instructionsWithNewB = instructions |> Map.change "b" change
+
+   let (result, _) = getValue aWire instructionsWithNewB
+   printfn "%d" result
+
+   ()
