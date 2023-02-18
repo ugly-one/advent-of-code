@@ -37,6 +37,8 @@
     </Content>
     <Compile Include="Day10\Day10.fs"/>
     <Content Include="Day10\input.txt"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></Content>
+    <Compile Include="Day11\Day11.fs"/>
+    <Content Include="Day11\input.txt"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></Content>
     <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>

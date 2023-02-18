@@ -14,6 +14,9 @@ touch $day/input.txt
 touch $day/$day.fs
 echo "module "$day > $day/$day.fs
 echo "" >> $day/$day.fs
+echo "open System.Collections.Generic" >> $day/$day.fs
+echo "open System.Text.RegularExpressions" >> $day/$day.fs
+echo "" >> $day/$day.fs
 echo "let run () =" >> $day/$day.fs
 echo "   ()" >> $day/$day.fs
 
