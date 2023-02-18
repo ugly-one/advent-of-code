@@ -8,6 +8,7 @@ let move (x, y) char =
     | '<' -> (x-1, y)
     | '>' -> (x+1, y)
     | 'v' -> (x, y+1)
+    | _ -> failwith "HE?!"
 
 let fold (currentPos, visitedHouses) char = 
     let newPos = move currentPos char

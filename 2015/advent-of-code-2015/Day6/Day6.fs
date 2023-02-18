@@ -50,6 +50,7 @@ let run_ input width =
          | 1,_ -> grid[light] <- grid[light] + 1
          | 0,_ -> grid[light] <- if grid[light] > 0 then grid[light] - 1 else 0
          | 2,_ -> grid[light] <- grid[light] + 2
+         | _ -> failwith "HE?!"
    grid
 
 let run () =
