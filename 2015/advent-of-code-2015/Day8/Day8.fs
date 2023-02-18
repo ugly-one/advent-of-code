@@ -6,11 +6,8 @@ let readLines file = System.IO.File.ReadLines(file) |> Array.ofSeq
 
 let count (string: string) = 
    let string = string[1..string.Length - 2]
-
    let mutable charactersInMemory = Array.empty
-
    let mutable index = 0
-   
    while index < string.Length do 
       let character1 = string[index]
       if index + 1 = string.Length 
@@ -44,6 +41,17 @@ let count (string: string) =
    let numberOfCharactersInMemory = charactersInMemory.Length
    (numberOfCharactersInMemory, numberOfCharactersOfCode)
 
+let count2 (string: string) = 
+   let mutable sum = 0
+   for char in string do
+      let characters =  
+         match char with 
+         | '"' -> 2
+         | '\\' -> 2
+         | _ -> 1
+      sum <- sum + characters
+   (string.Length, sum + 2)
+
 let print (x,y) = 
    printfn "string literals: %d in memory: %d" x y
 
@@ -59,19 +67,19 @@ let run () =
    "\"\\\\\\x66\"" |> do_
    "\"\\\\\\\\x66\"" |> do_
    "\"\\\"o\"" |> do_
-   // let testInput = [|
-   //    "\"\""
-   //    "\"abc\""
-   //    "\"aaa\\\"aaa\""
-   //    "\"\\x27\""
-   // |]
 
    let input = readLines "Day8/input.txt"
 
    let fold diff line = 
       let (a, b) = count line
-      printfn "%s = %d %d" line a b
       diff + (b - a)
 
-   // testInput |> Array.fold fold 0 |> printfn "%d"   
    input |> Array.fold fold 0 |> printfn "%d"
+
+   "\"\\x27\"" |> count2 |> print
+
+   let fold2 acc line = 
+      let (a, b) = count2 line
+      acc + (b - a)
+
+   input |> Array.fold fold2 0 |> printf "%d"
