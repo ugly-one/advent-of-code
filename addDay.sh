@@ -1,7 +1,9 @@
 #!/bin/bash
 
+projectFile="advent-of-code-2015.fsproj"
+
 func (){
-grep -n "Program.fs" 2021-fsharp.fsproj
+grep -n "Program.fs" $projectFile
 }
 lineMatched=$(func)
 # if line > 99 we should take 3 characters
@@ -15,7 +17,7 @@ echo "" >> $day/$day.fs
 echo "let run () =" >> $day/$day.fs
 echo "   ()" >> $day/$day.fs
 
-sed -i $line' i \ \ \ \ <Content Include="'$day'\\input.txt"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></Content>' 2021-fsharp.fsproj
-sed -i $line' i \ \ \ \ <Compile Include="'$day'\\'$day'.fs"/>' 2021-fsharp.fsproj
+sed -i $line' i \ \ \ \ <Content Include="'$day'\\input.txt"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></Content>' $projectFile
+sed -i $line' i \ \ \ \ <Compile Include="'$day'\\'$day'.fs"/>' $projectFile
 
 echo $day".run()" > Program.fs
