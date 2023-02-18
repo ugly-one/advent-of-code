@@ -5,6 +5,7 @@
     <RootNamespace>advent_of_code_2015</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="InputReader.fs" />
     <Compile Include="Day6\Day6.fs" />
     <Content Include="Day6\input.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -28,6 +29,10 @@
     </Content>
     <Compile Include="Day8\Day8.fs" />
     <Content Include="Day8\input.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="Day9\Day9.fs" />
+    <Content Include="Day9\input.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Compile Include="Program.fs" />
