@@ -35,11 +35,7 @@ let count (string: string) =
             | _ -> 
                charactersInMemory <- charactersInMemory |> Array.append [| character1 |]
                index <- index + 1
-
-
-   let numberOfCharactersOfCode = string.Length + 2
-   let numberOfCharactersInMemory = charactersInMemory.Length
-   (numberOfCharactersInMemory, numberOfCharactersOfCode)
+   (charactersInMemory.Length, string.Length + 2)
 
 let count2 (string: string) = 
    let mutable sum = 0
