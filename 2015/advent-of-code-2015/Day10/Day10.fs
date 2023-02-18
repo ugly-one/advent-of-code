@@ -1,29 +1,45 @@
 module Day10
 
-let lookAndSay (input: string) = 
-   let mutable result = ""
+open System.Collections.Generic
+
+let lookAndSay2 (input: List<int>) = 
+   let mutable result = new List<int>()
    let mutable previousChar = input[0]
    let mutable currentGroupCount = 1
    let mutable index = 1
-   while index < input.Length do 
+   while index < input.Count do 
       let char = input[index]
       if char = previousChar then 
          currentGroupCount <- currentGroupCount + 1
       else 
-         result <- result + (currentGroupCount |> string)
-         result <- result + (previousChar |> string)
+         result.Add currentGroupCount
+         result.Add previousChar
          currentGroupCount <- 1
          previousChar <- char
       index <- index + 1
-   result <- result + (currentGroupCount |> string)
-   result <- result + (previousChar |> string)
+   result.Add currentGroupCount
+   result.Add previousChar
    result
-let run () =
-   "1" |> lookAndSay |> printfn "%s"
-   "111221" |> lookAndSay |> printfn "%s"
+   
+let toList (a: string) = 
+   let mutable result = new List<int>()
+   for char in a do 
+      let int = char |> string |> int
+      result.Add int
+   result 
 
-   let mutable input = "1113122113"
-   for i in 1 .. 40 do 
-      input <- lookAndSay input
+let toString a = 
+   a |> Seq.fold (fun acc a -> acc + (a |> string)) ""
+
+let run () =
+
+   let list = new List<int> ()
+   list.Add 1
+   list |> lookAndSay2 |> toString |>  printfn "%s"
+
+   let mutable input = "1113122113" |> toList
+
+   for i in 1 .. 50 do 
+      input <- lookAndSay2 input
       printfn "%d done" i
-   input.Length |> printfn "%d"
+   input.Count |> printfn "%d"
