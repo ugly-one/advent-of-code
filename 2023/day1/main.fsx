@@ -2,16 +2,21 @@
 
 let readLines file = System.IO.File.ReadLines(file) |> Array.ofSeq
 
-let getIndexes (line: seq<char>) =
-    line |> Seq.indexed |> Seq.fold (fun (leftIndex, rightIndex) (index, item) ->
-        let isDigit = Char.IsDigit(item)
-        if isDigit && leftIndex = -1 then
-            (index, index)
-        elif isDigit then
-            (leftIndex, index)
-        else
-            (leftIndex, rightIndex)
-    ) (-1, -1)
+let lines = readLines $"{__SOURCE_DIRECTORY__}/input.txt"
+    
+let getSolution (line: string) =
+    let digits = line |> Seq.filter Char.IsDigit
+    let first = digits |> Seq.head
+    let last = digits |> Seq.rev |> Seq.head
+    $"{first}{last}" |> int
+    
+let part1Result =
+    lines
+    |> Array.map getSolution
+    |> Array.sum
+                 
+printfn "%A" part1Result
+if part1Result <> 54605 then failwith "wrong answer" else printfn "%A" "part1 ok"
 
 let getNumbers (line: string) =
     line |> Seq.indexed |> Seq.fold (fun (leftNumber, rightNumber) (currentIndex, currentItem) ->
@@ -65,37 +70,14 @@ let getDigitAt (line: List<char>) (index1, index2) =
     let n1 = line |> List.item index1 |> string |> int
     let n2 = line |> List.item index2 |> string |> int
     toNumber (n1, n2)
-
-let getSolution (line: string) =
-    line |> getIndexes |> getDigitAt (line |> Seq.toList)
     
 let getSolution2 (line: string) =
   line |> getNumbers |> toNumber
     
-    
-let lines = readLines "input.txt"
-    
-let sum = lines
+let part2Result = lines
                  |> Array.indexed
-                 |> Array.map (fun (index, item) ->
-                     // printfn "%A" (index, item)
-                     (getSolution item))
+                 |> Array.map (fun (index, item) -> (getSolution2 item))
                  |> Array.sum
                  
-
-"pqr3stu8vwx" |> getSolution |> printfn "%A"
-"a1b2c3d4e5f" |> getSolution |> printfn "%A"
-"1abc2" |> getSolution |> printfn "%A"
-"treb7uchet" |> getSolution |> printfn "%A"
-
-printfn "%A" sum
-
-"two1nine" |> getSolution2 |> printfn "%A"
-
-let sum2 = lines
-                 |> Array.indexed
-                 |> Array.map (fun (index, item) ->
-                     // printfn "%A" (index, item)
-                     (getSolution2 item))
-                 |> Array.sum
-printfn "%A" sum2
+printfn "%A" part2Result
+if part2Result <> 55429 then failwith "wrong answer" else "part2 ok" |> printfn "%A" 
