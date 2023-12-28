@@ -7,3 +7,5 @@ let printSeq seq =
 let printDic (dic: IDictionary<int,int>) =
     dic |> Seq.map (fun item -> printfn "%A -> %A" item.Key item.Value)
     |> Seq.length
+    
+let readLines file = System.IO.File.ReadLines(file) |> Array.ofSeq
