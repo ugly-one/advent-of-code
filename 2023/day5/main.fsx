@@ -1,5 +1,8 @@
 #load "../general.fsx"
 
+open System.Collections.Generic
+open Microsoft.FSharp.Core
+
 let readLines file = System.IO.File.ReadLines(file) |> Array.ofSeq
 
 let lines = readLines "input.txt"
@@ -36,12 +39,23 @@ let arrayToMap (numbers: int64 array) =
 let toMap (line: string) =
     line |> toArray |> arrayToMap
 
-let parseLine (state: MapType, parsedInput: ParsedInput) (line: string) =
+let parseSeeds_part1 (line: string) =
+    let numbersString = line.Split(" ")[1..]
+    let numbers = numbersString |> Array.map int64
+    numbers
+    
+let parseSeeds_part2 (line: string) =
+    let numbers = parseSeeds_part1 line
+    let result = new List<int64>()
+    for i in 0..2..(numbers.Length - 2) do
+        let start = numbers[i]
+        let range = numbers[i+1]
+        for j in start..(start+range - 1L) do
+            result.Add(j)
+    result |> Array.ofSeq
+    
+let parseLine (state: MapType, parsedInput: ParsedInput)  (line: string) =
     match line with
-    | line when line.StartsWith("seeds:") ->
-        let numbersString = line.Split(" ")[1..]
-        let numbers = numbersString |> Array.map int64
-        (state, { parsedInput with Seeds = numbers })
     | line when line.StartsWith("seed-to-soil") ->
         (SeedToSoil, parsedInput)
     | line when line.StartsWith("soil-to-fertilizer") ->
@@ -74,9 +88,11 @@ let parseLine (state: MapType, parsedInput: ParsedInput) (line: string) =
         | HumidityToLocation ->
             (state, {parsedInput with HumidityToLocation = Array.append parsedInput.HumidityToLocation [| line |> toMap |] })
 
-let parseInput (input: string array) =
+let parseInput (input: string array) parseSeeds =
+    let seeds = parseSeeds input[0]
+    printfn "test3"
     let initialParsedInput = {
-        Seeds = Array.empty
+        Seeds = seeds
         SeedToSoil = Array.empty 
         SoilToFertilizer = Array.empty
         FertilizerToWater = Array.empty
@@ -85,11 +101,9 @@ let parseInput (input: string array) =
         TemperatureToHumidity = Array.empty
         HumidityToLocation = Array.empty 
     }
-    let (_, parsedInput) = input |> (Array.fold parseLine (SeedToSoil, initialParsedInput))
+    let (_, parsedInput) = input[1..] |> (Array.fold parseLine (SeedToSoil, initialParsedInput))
     parsedInput
     
-let parsedInput = parseInput lines
-
 let isWithinRange (map: Map_) (number: int64) =
     let min = map.SourceStart
     let max = map.SourceStart + map.Range
@@ -110,25 +124,31 @@ let getNumber (maps: Map_ array) (currentNumber: int64) =
             else
                 ()
     newNumber
-    
 
 let getLocation (parsedInput: ParsedInput) (seed: int64) =
     let soil = getNumber parsedInput.SeedToSoil seed
-    // soil |> printfn "soil: %A"
     let fertilizer = getNumber parsedInput.SoilToFertilizer soil
-    // fertilizer |> printfn "fertilizer: %A"
     let water = getNumber parsedInput.FertilizerToWater fertilizer
-    // water |> printfn "water: %A"
     let light = getNumber parsedInput.WaterToLight water
-    // light |> printfn "light: %A"
     let temperature = getNumber parsedInput.LightToTemperature light
-    // temperature |> printfn "temperature %A"
     let humidity = getNumber parsedInput.TemperatureToHumidity temperature
-    // humidity |> printfn "humidity: %A"
     let location = getNumber parsedInput.HumidityToLocation humidity
-    // location |> printfn "location: %A"
     location
 
+   
+let getLocationWithCache (input: ParsedInput)  (cache: Dictionary<int64, int64>) (seed: int64) =
+    printfn "calculating seed %A" <| seed
+    let mutable value = 0L
+    let isInCache = cache.TryGetValue(seed, &value)
+    if (isInCache) then
+        printfn "cache hit"
+        value
+    else
+        let location = getLocation input seed
+        printfn "adding to cache %A" <| location
+        cache.Add(seed, location)
+        location
+    
 // isWithinRange {DestinationStart =  50; SourceStart = 98; Range = 2 } 79 |> printfn "%A"
 // isWithinRange {DestinationStart =  52; SourceStart = 50; Range = 48 } 79 |> printfn "%A"
 //
@@ -137,15 +157,24 @@ let getLocation (parsedInput: ParsedInput) (seed: int64) =
 // getNumber parsedInput.SeedToSoil 55 |> printfn "%A"
 // getNumber parsedInput.SeedToSoil 13 |> printfn "%A"
 
-let allLocations = parsedInput.Seeds |> Array.map (getLocation parsedInput)
-
-allLocations |> Array.min |> printfn "%A"
+// let input_part1 = parseInput lines parseSeeds_part1
+// let allLocations = input_part1.Seeds |> Array.map (getLocation input_part1)
+// allLocations |> Array.min |> printfn "%A"
 //
 // getLocation parsedInput 79 |> printfn "%A"
 // getLocation parsedInput 14 |> printfn "%A"
 // getLocation parsedInput 55 |> printfn "%A"
 // getLocation parsedInput 13 |> printfn "%A"
-// //
-// parsedInput.FertilizerToWater |> General.printSeq
 //
 // getNumber parsedInput.FertilizerToWater 53 |> printfn "%A"
+
+// parseSeeds_part2 "seeds: 79 14 55 13" |> Seq.length |> printfn "%A"
+
+printfn "test2"
+let input = parseInput lines parseSeeds_part2
+printfn "test"
+let cache = new Dictionary<int64, int64>()
+input.Seeds
+    |> Array.map (getLocationWithCache input cache)
+    |> Array.min
+    |> printfn "%A"
