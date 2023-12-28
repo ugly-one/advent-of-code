@@ -2,7 +2,7 @@
 
 let readLines file = System.IO.File.ReadLines(file) |> Array.ofSeq
 
-let lines = readLines "testInput.txt"
+let lines = readLines "input.txt"
 
 type MapType =
     | SeedToSoil
@@ -13,10 +13,10 @@ type MapType =
     | TemperatureToHumidity
     | HumidityToLocation
 
-type Map_ = { DestinationStart: int ; SourceStart: int; Range: int }
+type Map_ = { DestinationStart: int64 ; SourceStart: int64; Range: int64 }
 
 type ParsedInput = {
-    Seeds: int[]
+    Seeds: int64[]
     SeedToSoil: Map_[]
     SoilToFertilizer: Map_[]
     FertilizerToWater: Map_[]
@@ -28,9 +28,9 @@ type ParsedInput = {
 
 let toArray (line: string) =
     let numbersString = line.Split(" ")
-    numbersString |> Array.map int
+    numbersString |> Array.map int64
 
-let arrayToMap (numbers: int array) =
+let arrayToMap (numbers: int64 array) =
     { DestinationStart = numbers[0]; SourceStart = numbers[1]; Range = numbers[2] }
 
 let toMap (line: string) =
@@ -40,7 +40,7 @@ let parseLine (state: MapType, parsedInput: ParsedInput) (line: string) =
     match line with
     | line when line.StartsWith("seeds:") ->
         let numbersString = line.Split(" ")[1..]
-        let numbers = numbersString |> Array.map int
+        let numbers = numbersString |> Array.map int64
         (state, { parsedInput with Seeds = numbers })
     | line when line.StartsWith("seed-to-soil") ->
         (SeedToSoil, parsedInput)
@@ -90,13 +90,13 @@ let parseInput (input: string array) =
     
 let parsedInput = parseInput lines
 
-let isWithinRange (map: Map_) (number: int) =
+let isWithinRange (map: Map_) (number: int64) =
     let min = map.SourceStart
     let max = map.SourceStart + map.Range
     if number < min || number > max then false
     else true
     
-let getNumber (maps: Map_ array) (currentNumber: int) =
+let getNumber (maps: Map_ array) (currentNumber: int64) =
     let mutable found = false
     let mutable newNumber = currentNumber
     for map in maps do
@@ -112,7 +112,7 @@ let getNumber (maps: Map_ array) (currentNumber: int) =
     newNumber
     
 
-let getLocation (parsedInput: ParsedInput) (seed: int) =
+let getLocation (parsedInput: ParsedInput) (seed: int64) =
     let soil = getNumber parsedInput.SeedToSoil seed
     // soil |> printfn "soil: %A"
     let fertilizer = getNumber parsedInput.SoilToFertilizer soil
