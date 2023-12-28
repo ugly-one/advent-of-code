@@ -1,10 +1,7 @@
-﻿
-
-type Race = {
-    Time: int
-    Distance: int
+﻿type Race = {
+    Time: int64
+    Distance: int64
 }
-
 
 // Time:      7  15   30
 // Distance:  9  40  200
@@ -18,6 +15,10 @@ let race1 = {Time = 59; Distance = 597 }
 let race2 = {Time = 79; Distance = 1234 }
 let race3 = {Time = 65; Distance = 1032 }
 let race4 = {Time = 75; Distance = 1328 }
+
+let part2TestRace = {Time = 71530; Distance = 940200}
+
+let part2Race = {Time = 59796575; Distance = 597123410321328L}
 
 let races = [|
     race1; race2; race3; race4
@@ -33,27 +34,26 @@ let calculateDistance race holdingButtonTime =
     let distance = speed * sailingTime
     distance
 
-let calculateOptionsWIthLongerDistance race = 
+let calculateOptionsWithLongerDistance race = 
     let mutable optionsWithLongerDistance = 0
-    for holdingButtonTime in 0..race.Time do
+    for holdingButtonTime in 0L..race.Time do
         let distance = calculateDistance race holdingButtonTime
-        printfn "holding button: %A - distance %A" holdingButtonTime distance
         if distance > race.Distance then
             optionsWithLongerDistance <- optionsWithLongerDistance + 1
-            printfn "won!"
         else
-            printfn "not good enough"
             ()
-    printfn "%A" optionsWithLongerDistance
     optionsWithLongerDistance
     
     
 testRaces
-|> Seq.fold (fun s race -> s * (calculateOptionsWIthLongerDistance race)) 1
+|> Seq.fold (fun s race -> s * (calculateOptionsWithLongerDistance race)) 1
 |> printfn "%A"
 
 races
-|> Seq.fold (fun s race -> s * (calculateOptionsWIthLongerDistance race)) 1
+|> Seq.fold (fun s race -> s * (calculateOptionsWithLongerDistance race)) 1
 |> printfn "%A"
+
+calculateOptionsWithLongerDistance part2TestRace |> printfn "%A"
+calculateOptionsWithLongerDistance part2Race |> printfn "%A"
 
 // calculateOptionsWIthLongerDistance race2 |> printfn "%A"
