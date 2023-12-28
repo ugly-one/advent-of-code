@@ -4,10 +4,7 @@ let readLines file = System.IO.File.ReadLines(file) |> Array.ofSeq
 
 let lines = readLines "testInput.txt"
 
-General.printSeq lines
-
-type ParsingState =
-    | Seeds
+type MapType =
     | SeedToSoil
     | SoilToFertilizer
     | FertilizerToWater
@@ -39,7 +36,7 @@ let arrayToMap (numbers: int array) =
 let toMap (line: string) =
     line |> toArray |> arrayToMap
 
-let parseLine (state: ParsingState, parsedInput: ParsedInput) (line: string) =
+let parseLine (state: MapType, parsedInput: ParsedInput) (line: string) =
     match line with
     | line when line.StartsWith("seeds:") ->
         let numbersString = line.Split(" ")[1..]
@@ -62,7 +59,6 @@ let parseLine (state: ParsingState, parsedInput: ParsedInput) (line: string) =
     | "" -> (state, parsedInput)
     | _ ->
         match state with
-        | Seeds -> failwith "bla"
         | SeedToSoil ->
             (state, {parsedInput with SeedToSoil = Array.append parsedInput.SeedToSoil [| line |> toMap |] })
         | SoilToFertilizer ->
@@ -89,9 +85,67 @@ let parseInput (input: string array) =
         TemperatureToHumidity = Array.empty
         HumidityToLocation = Array.empty 
     }
-    let (_, parsedInput) = input |> (Array.fold parseLine (Seeds, initialParsedInput))
+    let (_, parsedInput) = input |> (Array.fold parseLine (SeedToSoil, initialParsedInput))
     parsedInput
     
 let parsedInput = parseInput lines
 
-parsedInput.LightToTemperature |> General.printSeq
+let isWithinRange (map: Map_) (number: int) =
+    let min = map.SourceStart
+    let max = map.SourceStart + map.Range
+    if number < min || number > max then false
+    else true
+    
+let getNumber (maps: Map_ array) (currentNumber: int) =
+    let mutable found = false
+    let mutable newNumber = currentNumber
+    for map in maps do
+        if (found) then ()
+        else
+            let isWithinRange = isWithinRange map currentNumber
+            if isWithinRange then
+                let diff = map.DestinationStart - map.SourceStart
+                newNumber <- currentNumber + diff
+                found <- true
+            else
+                ()
+    newNumber
+    
+
+let getLocation (parsedInput: ParsedInput) (seed: int) =
+    let soil = getNumber parsedInput.SeedToSoil seed
+    // soil |> printfn "soil: %A"
+    let fertilizer = getNumber parsedInput.SoilToFertilizer soil
+    // fertilizer |> printfn "fertilizer: %A"
+    let water = getNumber parsedInput.FertilizerToWater fertilizer
+    // water |> printfn "water: %A"
+    let light = getNumber parsedInput.WaterToLight water
+    // light |> printfn "light: %A"
+    let temperature = getNumber parsedInput.LightToTemperature light
+    // temperature |> printfn "temperature %A"
+    let humidity = getNumber parsedInput.TemperatureToHumidity temperature
+    // humidity |> printfn "humidity: %A"
+    let location = getNumber parsedInput.HumidityToLocation humidity
+    // location |> printfn "location: %A"
+    location
+
+// isWithinRange {DestinationStart =  50; SourceStart = 98; Range = 2 } 79 |> printfn "%A"
+// isWithinRange {DestinationStart =  52; SourceStart = 50; Range = 48 } 79 |> printfn "%A"
+//
+// getNumber parsedInput.SeedToSoil 79 |> printfn "%A"
+// getNumber parsedInput.SeedToSoil 14 |> printfn "%A"
+// getNumber parsedInput.SeedToSoil 55 |> printfn "%A"
+// getNumber parsedInput.SeedToSoil 13 |> printfn "%A"
+
+let allLocations = parsedInput.Seeds |> Array.map (getLocation parsedInput)
+
+allLocations |> Array.min |> printfn "%A"
+//
+// getLocation parsedInput 79 |> printfn "%A"
+// getLocation parsedInput 14 |> printfn "%A"
+// getLocation parsedInput 55 |> printfn "%A"
+// getLocation parsedInput 13 |> printfn "%A"
+// //
+// parsedInput.FertilizerToWater |> General.printSeq
+//
+// getNumber parsedInput.FertilizerToWater 53 |> printfn "%A"
