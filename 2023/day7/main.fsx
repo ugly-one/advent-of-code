@@ -2,8 +2,6 @@
 
 open System.Collections.Generic
 
-let lines = General.readLines "testInput.txt"
-
 type Hand = char array
 type Line = {
     Hand: Hand
@@ -24,7 +22,7 @@ let parseLine (line: string) : Line =
     let bid = chunks[1] |> int
     {Hand = hand; Bid = bid}
     
-let getValue (hand: Hand) =
+let calculateStrength (hand: Hand) =
     let dict = new Dictionary<char, int>()
     
     for char in hand do
@@ -44,11 +42,73 @@ let getValue (hand: Hand) =
         else 3
     elif dict.Count = 4 then 2
     else 1
+
+let groupByStrength (lines: seq<LineWithStrength>) =
+    let result = new Dictionary<int, List<Line>>()
+    for line in lines do
+        let mutable value = new List<Line>()
+        if result.TryGetValue(line.Strength, &value) then
+            value.Add(line.Line)
+        else
+            let newList = List<Line>()
+            newList.Add(line.Line)
+            result.Add(line.Strength, newList)
+    result 
     
-let lines2 = lines |> Seq.map parseLine
-lines2
-|> Seq.map (fun line -> {Line = line; Strength = (getValue line.Hand)})
-|> Seq.sortBy (fun l -> l.Strength)
-|> Seq.map (printfn "%A")
-|> Seq.length
+    
+let charToValue char =
+    match char with
+        | 'A' -> 14
+        | 'K' -> 13
+        | 'Q' -> 12
+        | 'J' -> 11
+        | 'T' -> 10
+        | c -> (c |> int) - 48
+    
+let rec compareHands (hand1: Hand) (hand2: Hand) =
+    if hand1.Length = 0 then 0
+    else
+        let valueHand1Char1 = charToValue hand1[0]
+        let valueHand2Char1 = charToValue hand2[0]
+        if valueHand1Char1 > valueHand2Char1 then 1
+        elif valueHand1Char1 < valueHand2Char1 then -1
+        else
+            compareHands hand1[1..] hand2[1..]
+    
+let compareLines (line1: Line) (line2: Line) =
+    compareHands line1.Hand line2.Hand
+    
+let giveRank (hands: Line seq) =
+    hands |> Seq.sortWith compareLines
+
+let giveRankForEachGroup (dict : seq<KeyValuePair<int, List<Line>>>) =
+    let orderedGroups = dict |> Seq.map (fun kv -> kv.Value |> giveRank)
+    let mutable rank = 1
+    let result = new List<(Line*int)>()
+    for group in orderedGroups do
+        for line in group do
+            result.Add((line, rank))
+            rank <- rank + 1
+    result
+    
+let calculateTotalWinnings (linesWithRank: List<Line * int>) =
+    linesWithRank |> Seq.fold (fun sum (line, rank) -> sum + line.Bid * rank) 0
+    
+let lines =
+    General.readLines "input.txt"
+    |> Seq.map parseLine
+    
+lines
+    |> Seq.map (fun line -> {Line = line; Strength = (calculateStrength line.Hand)})
+    |> groupByStrength
+    |> Seq.sortBy (fun kv -> kv.Key)
+    |> giveRankForEachGroup
+    |> calculateTotalWinnings
+    |> printfn "%A"
+    // |> General.printSeq
+    //
+    //
+    // |> Seq.map (fun kv -> printfn "%A")
+    // |> Seq.length
 // group cards by strength and give ranks within each group
+
