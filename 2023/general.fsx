@@ -1,5 +1,9 @@
 ﻿open System.Collections.Generic
 
+let print seq =
+    seq |> Seq.map (printfn "%A") |> Seq.length |> ignore
+    seq
+
 let printSeq seq =
     seq |> Seq.map (fun item -> printfn "%A" item)
     |> Seq.length
