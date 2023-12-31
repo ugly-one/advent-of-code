@@ -28,11 +28,19 @@ let rec calculateDiffsRec (numbers: int array) =
     if areAllZeros numbers then numbers[(numbers.Length-1)]
     else
         let diffs = calculateDiffs numbers |> Array.ofSeq
-        // diffs |> General.print
         let lastNumberFromDiffs = calculateDiffsRec diffs
         let lastNumber = numbers[(numbers.Length-1)]
         let newLastNumber = lastNumber + lastNumberFromDiffs
         newLastNumber   
+
+let rec calculateDiffsRec_part2 (numbers: int array) =
+    if areAllZeros numbers then numbers[0]
+    else
+        let diffs = calculateDiffs numbers |> Array.ofSeq
+        let firstNumberFromDiffs = calculateDiffsRec_part2 diffs
+        let firstNumber = numbers[0]
+        let newfirstNumber = firstNumber - firstNumberFromDiffs
+        newfirstNumber   
   
 let getNextValue (line) =
     line |>toNumbers |> calculateDiffsRec
@@ -40,5 +48,13 @@ let getNextValue (line) =
 let getSum input =
     input |> Array.map (toNumbers) |> Array.map calculateDiffsRec |> Array.sum |> General.print
     
+let getSum_part2 input =
+    input |> Array.map (toNumbers) |> Array.map calculateDiffsRec_part2 |> Array.sum |> General.print
+    
 testInput |> getSum
 General.readLines "input.txt" |> getSum
+
+[| test3 |] |> getSum_part2
+testInput |> getSum_part2
+General.readLines "input.txt" |> getSum_part2
+
