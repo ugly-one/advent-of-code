@@ -107,7 +107,7 @@ let getDirection (pos1: Position) (pos2: Position) =
     | (0, 1) -> Down
     | _ -> failwithf $"%A{pos1} %A{pos2}"
     
-let getDirections  (position: Position) (positions: List<Position>) =
+let getDirections (position: Position) (positions: List<Position>) =
     positions |> Seq.map (getDirection position)
   
 let walk (map: string array) (pos: Position, direction: Direction) =
@@ -141,7 +141,6 @@ let rec walkBothDirections (pos1: Position, direction1: Direction) (pos2: Positi
     else
         let new1 = walk map (pos1, direction1)
         let new2 = walk map (pos2, direction2)
-    
         1 + (walkBothDirections new1 new2 map)
    
 let solvePart1 map =
@@ -164,8 +163,36 @@ let solvePart1 map =
     |> (fun x -> x + 1)
     |> General.print
     
-let testMap = testInput2 |> toMap
-solvePart1 testMap
+testInput2 |> toMap |> solvePart1
+input |> toMapFromStringArray |> solvePart1 
 
-let map = toMapFromStringArray input
-solvePart1 map
+// TODO part2 - I think the way to solve part 2 is to count any tiles (dots) that are on the correct side of the pipes
+// TODO find the right side to check
+// TODO everytime a direction changes, the side also changes
+// TODO we should could all tiles on the correct side, regardless how far they are
+
+let testInput3 = """
+...........
+.S-------7.
+.|F-----7|.
+.||.....||.
+.||.....||.
+.|L-7.F-J|.
+.|..|.|..|.
+.L--J.L--J.
+...........
+"""
+
+let map = testInput |> toMap
+
+let start () =  
+    let startPosition =
+        map
+        |> findStart
+    
+    let directionsToCheck =
+        startPosition
+        |> getConnectedPipes map
+        |> getDirections (startPosition)
+        
+    ()
