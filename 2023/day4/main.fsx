@@ -1,4 +1,5 @@
 ﻿open System.Collections.Generic
+#load "../general.fsx"
 
 let part1Example =
     """Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
@@ -46,59 +47,35 @@ part1Example |> solve1 |> printfn "part 1 example: %A"
 let readLines file = System.IO.File.ReadLines(file) |> Array.ofSeq
 readLines "input.txt" |> solve1 |> printfn "part 1 main: %A"
 
-let printSeq seq =
-    seq |> Seq.map (fun item -> printfn "%A" item)
-    |> Seq.length
+type CardToProcess = {
+    Card: string
+    mutable Count: int
+}
 
-let printDic (dic: IDictionary<int,int>) =
-    dic |> Seq.map (fun item -> printfn "%A -> %A" item.Key item.Value)
-    |> Seq.length
+let increaseCounts (cards: CardToProcess list) cardCount value =
 
-let bla2 map sequence (cardId, newCards)  =
-    let toAdd = Seq.skip (cardId + 1) map |> Seq.take newCards
-    Seq.append sequence toAdd
+    let cardsToIncrease = List.take cardCount cards
+    for cardToIncrease in cardsToIncrease do 
+        cardToIncrease.Count <- cardToIncrease.Count + value
+    ()
 
-let bla3 map sequence (cardId, newCards)  =
-    let toAdd = Seq.skip (cardId + 1) map |> Seq.take newCards
-    Seq.append sequence toAdd
+let solve2 lines = 
 
-let rec bla (cardsToProcess: seq<int * int>) (result: int) (map: seq<int * int>)=
+    let cardsToProcess = lines |> Seq.map (fun line -> {Card = line; Count = 1}) |> List.ofSeq
+    let mutable score = 0
+    let rec processCards (cards: CardToProcess list) =
     
-    match cardsToProcess with
-    | sequence when Seq.isEmpty sequence -> result
-    | a ->
-        let newScore = result + (a |> Seq.length)
-        // printfn "new Score %A" newScore
-        let newCardsToProcess = a |> Seq.fold (bla2 map) Seq.empty
-        // printfn "new cards to process: "
-        // printSeq newCardsToProcess
-        bla newCardsToProcess newScore map
-    
-let blaaa (cardsToProcess: seq<int * int>) (map: seq<int * int>)=
-    
-    let mutable hola = cardsToProcess
-    let mutable score = hola |> Seq.length;
-    while Seq.length hola > 0 do
-        
-        printSeq hola
-        let values = hola |> Seq.map (fun (a,b) -> b)
-        let additionalScore = values |> Seq.sum
-        values |> Seq.length |> printfn " amount of new cards to process %A" 
-        score <- score + additionalScore
-        let newCardsToProcess = hola |> Seq.fold (bla3 map) Seq.empty
-        hola <- newCardsToProcess
-        
-    score
+        if cards |> Seq.length = 0 then ()
+        else
+            let firstCard = cards |> Seq.head
+            let firstCardWinningNumbers = firstCard.Card |> getMyWinningNumbersCount
+            score <- firstCard.Count + score
+            let otherCards = List.skip 1 cards
+            increaseCounts otherCards firstCardWinningNumbers firstCard.Count
+            processCards otherCards
 
-let solve2 (lines: string seq) =
-    let cardToWinningNumbersCount =
-        lines
-        |> Seq.indexed
-        |> Seq.map (fun (index,line) -> (index, line |> getMyWinningNumbersCount))
-    
-    let result = blaaa cardToWinningNumbersCount cardToWinningNumbersCount
-    printfn "%A" result
-  
+    processCards cardsToProcess
+    printfn "%A" score
+
 part1Example |> solve2
-
-// readLines "input.txt" |> solve2 |> printfn "%A"
+readLines "input.txt" |> solve2
