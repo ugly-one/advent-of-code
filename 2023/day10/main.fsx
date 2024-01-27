@@ -1,4 +1,4 @@
-﻿#load "../general.fsx"
+﻿#load "../general_typo_here.fsx"
 open System.Collections.Generic
 let testInput ="""
 .....
