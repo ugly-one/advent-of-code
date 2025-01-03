@@ -10,12 +10,30 @@ void clear(char* array, uint8_t size){
     };
 }
 
-uint8_t isSafe(std::vector<int> line){
+uint8_t isSafe(std::vector<int> line, int8_t indexToSkip){
 
     uint8_t safe = 1;
     int sign = 0;
+    int firstIndex = 0;
+    int secondIndex = 0;
     for(int j = 0; j < line.size() - 1; j++){
-        int diff = line[j+1] - line[j]; 
+        if (indexToSkip == 0 && j == 0)
+        {
+            continue;
+        }
+        if (indexToSkip == (line.size() - 1) && j == (line.size() - 2)){
+            continue;
+        }
+
+        firstIndex = j;
+        secondIndex = j+1;
+        if (j+1 == indexToSkip)
+        {
+            secondIndex++;
+            j++;
+        }
+       
+        int diff = line[secondIndex] - line[firstIndex]; 
         uint absDiff = 0;
         if (diff < 0){
             absDiff = -diff;
@@ -115,8 +133,19 @@ int main(int argc, char* argv[])
     for(int i = 0; i < lines->size(); i++){
 
         std::vector<int> line = lines->at(i);
-        if (isSafe(line)){
+        if (isSafe(line, -1)){
             safeCounter++;
+        }
+        else{
+            uint safeAfterSkipCounter = 0;
+            for(uint indexToSkip = 0; indexToSkip < line.size(); indexToSkip++){
+                if (isSafe(line, indexToSkip)){
+                    safeAfterSkipCounter++;
+                }
+            }
+            if (safeAfterSkipCounter){
+                safeCounter++;
+            }
         }
     }
 
