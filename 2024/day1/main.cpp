@@ -68,5 +68,30 @@ int main(int argc, char* argv[])
         sum += diff;
     }
 
-    printf("%d", sum);
+    printf("%d\n", sum);
+
+    uint similarityScore = 0;
+    for(int i = 0; i < size; i++)
+    {
+        int leftItem = left[i];
+
+        uint counter = 0;
+        for(int j = 0; j < size; j++)
+        {
+            int rightItem = right[j];
+            if (leftItem == rightItem){
+                counter++;
+            }
+            else if (rightItem < leftItem){
+            }
+            else{
+                break;
+            }
+        }
+        
+        printf("item %d appears %d times\n", leftItem, counter);
+        similarityScore += counter * leftItem;
+    }
+
+    printf("%d\n", similarityScore);
 }
