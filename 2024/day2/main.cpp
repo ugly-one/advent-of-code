@@ -1,17 +1,11 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
-#include <sys/stat.h>
 #include <vector>
 
-void clear(char* array, uint8_t size){
-    for(int i = 0; i < size; i++){
-        array[i] = '\0';
-    };
-}
+#include "parser.cpp"
 
 uint8_t isSafe(std::vector<int> line, int8_t indexToSkip){
-
     uint8_t safe = 1;
     int sign = 0;
     int firstIndex = 0;
@@ -72,44 +66,6 @@ uint8_t isSafe(std::vector<int> line, int8_t indexToSkip){
     }
     return safe;
 }
-std::vector<std::vector<int>>* parseFile(uint8_t *data, uint size){
-    char stringNumber[6] = {'\0'}; // supporting only numbers with max value 99999 (last 6th character has to be \0
-    uint8_t charIndex = 0;
-    uint8_t readingNumber = 1;
-
-    std::vector<std::vector<int>> *numbers = new std::vector<std::vector<int>>;
-    std::vector<int> *line = new std::vector<int>;
-
-    for(uint i = 0; i < size; i++){
-        char item = data[i];
-        if (item == ' ' && readingNumber){
-            int number = atoi(stringNumber);
-            line->push_back(number);
-            clear(stringNumber, 6);
-            readingNumber = 0;
-            charIndex = 0;
-        }
-        else if(item == ' '){
-
-        }
-        else if (item == '\n'){
-            int number = atoi(stringNumber);
-            line->push_back(number);
-            numbers->push_back(*line); // perhaps this copies the vector?
-            line = new std::vector<int>;
-            readingNumber = 1;
-            clear(stringNumber, 6);
-            charIndex = 0;
-        }
-        else{
-            stringNumber[charIndex] = item;
-            charIndex++;
-            readingNumber = 1;
-        }
-    }
-
-    return numbers;
-}
 
 int main(int argc, char* argv[])
 {
@@ -119,15 +75,8 @@ int main(int argc, char* argv[])
     }
     const char* fileName = argv[1];
 
-    FILE* filePointer = fopen(fileName, "r");
-
-    struct stat fileStat;
-    stat(fileName, &fileStat);
-    uint8_t *data = (uint8_t *)malloc(fileStat.st_size);
-    fread(data, fileStat.st_size, 1, filePointer);
-
-    std::vector<std::vector<int>> *lines = parseFile(data, fileStat.st_size);
-    printf("ROWS: %ld\n", lines->size());
+    File file = loadFile(fileName);
+    std::vector<std::vector<int>> *lines = parseFile(file.data, file.size);
 
     uint safeCounter = 0;
     for(int i = 0; i < lines->size(); i++){
