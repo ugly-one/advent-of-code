@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <vector>
 
-#include "parser.cpp"
+#include "../parser.cpp"
 
 uint8_t isSafe(std::vector<int> line, int8_t indexToSkip){
     uint8_t safe = 1;
