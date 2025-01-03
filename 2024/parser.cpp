@@ -19,6 +19,7 @@ File loadFile(const char* fileName){
     File file;
     file.size = fileStat.st_size;
     file.data = data;
+
     return file;
 }
 
