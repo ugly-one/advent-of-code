@@ -3,7 +3,8 @@
 
 enum state
 {
-    unknown,
+    dont,
+    do_,
     m,
     u,
     l,
@@ -25,7 +26,7 @@ uint8_t length(const char* number)
 int main(int argc, char* argv[])
 {
     File file = loadFile(argv[1]);
-    state state = unknown;
+    state state = do_;
     char n1[4] = {'\0'};
     char n2[4] = {'\0'};
     uint8_t index = 0;
@@ -34,8 +35,15 @@ int main(int argc, char* argv[])
 
     for (int i = 0; i < file.size; i++)
     {
+        printf("%c", file.data[i]);
+    }
+    printf("\n");
+
+    for (int i = 0; i < file.size; i++)
+    {
         char c = file.data[i];
-        if (c == 'm' && state == unknown){
+        printf("%c: ", c);
+        if (c == 'm' && state == do_){
             state = m; 
         }
         else if (c == 'u' && state == m){
@@ -75,14 +83,43 @@ int main(int argc, char* argv[])
         }
         else if (c == ')' && state == number2 && length(n2) < 4)
         {
+            printf(" MUL(X,Y)" );
             n2[index] = c;
             sum = sum + atoi(n1) * atoi(n2);
-            state = unknown;
+            state = do_;
             
         }
-        else{
-            state = unknown;
+        else if(c == 'd')
+        {
+            printf(" D arrived ");
+            if (i + 3 < file.size){
+                if(file.data[i+1] == 'o' && file.data[i+2] == '(' && file.data[i+3] == ')')
+                {
+                    printf(" DO() ");
+                    state = do_;
+                    i = i + 3;
+                }
+            }
+            if (i + 6 < file.size){
+                if (file.data[i+1] == 'o' &&
+                        file.data[i+2] == 'n' &&
+                        file.data[i+3] == '\'' &&
+                        file.data[i+4] == 't' &&
+                        file.data[i+5] == '(' &&
+                        file.data[i+6] == ')'){
+                    printf(" DON'T() ");
+                    state = dont;
+                    i = i + 6;
+                }
+            }
         }
+        else{
+            if (state != dont)
+            {
+                state = do_;
+            } 
+        }
+        printf("\n");
     }
 
     printf("%d", sum);
