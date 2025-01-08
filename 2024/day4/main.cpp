@@ -1,34 +1,10 @@
 #include "../parser.cpp"
 
-
 bool within(int index, int boundary){
     if (index < 0) return false;
     if (index > boundary) return false;
     return true;
 };
-
-bool hasletter(int newIndex, int boundary, uint8_t *data, char letter){
-    if (within(newIndex, boundary - 1)){
-        if (data[newIndex] == letter){
-            return true;
-        }
-    }
-    return false;
-}
-
-bool hasMas(int index, int boundary, int x, int y, uint8_t *data, uint width){
-    int newIndex = index + x + width * y; 
-    if (hasletter(newIndex, boundary, data, 'M')){
-        int newIndex2 = newIndex + x + width * y;
-        if (hasletter(newIndex2, boundary, data, 'A')){
-            int newIndex3 = newIndex2 + x + width * y;
-            if (hasletter(newIndex3, boundary, data, 'S')){
-                return true;
-            }
-        }
-    }
-    return false;
-}
 
 int main(int argc, char* argv[])
 {
@@ -47,47 +23,29 @@ int main(int argc, char* argv[])
     for (int i = 0; i < file.size; i++)
     {
         char letter = file.data[i];
-        if (letter == 'X'){
-            // pick direction and check if XMAS exists
-            int x = 0;
-            int y = -1;
-            if (hasMas(i, file.size, x, y, file.data, width)){
-                counter++;
+        uint size = file.size;
+        uint8_t *data = file.data;
+        if (letter == 'A'){
+            int index1 = i + 1 + width * -1;
+            int index2 = i + 1 + width * 1;
+            int index3 = i + -1 + width * 1;
+            int index4 = i + -1 + width * -1;
+
+            if (!within(index1, size) || !within(index2, size) || !within(index3, size) || !within(index4, size)){
+                continue;
             }
-            x = 1;
-            y = -1;
-            if (hasMas(i, file.size, x, y, file.data, width)){
-                counter++;
+
+            if (data[index1] == 'M' && data[index3] == 'S' && data[index2] == 'M' && data[index4] == 'S'){
+                counter ++;
             }
-            x = 1;
-            y = 0;
-            if (hasMas(i, file.size, x, y, file.data, width)){
-                counter++;
+            if (data[index1] == 'S' && data[index3] == 'M' && data[index2] == 'M' && data[index4] == 'S'){
+                counter ++;
             }
-            x = 1;
-            y = 1;
-            if (hasMas(i, file.size, x, y, file.data, width)){
-                counter++;
+            if (data[index1] == 'M' && data[index3] == 'S' && data[index2] == 'S' && data[index4] == 'M'){
+                counter ++;
             }
-            x = 0;
-            y = 1;
-            if (hasMas(i, file.size, x, y, file.data, width)){
-                counter++;
-            }
-            x = -1;
-            y = 1;
-            if (hasMas(i, file.size, x, y, file.data, width)){
-                counter++;
-            }
-            x = -1;
-            y = 0;
-            if (hasMas(i, file.size, x, y, file.data, width)){
-                counter++;
-            }
-            x = -1;
-            y = -1;
-            if (hasMas(i, file.size, x, y, file.data, width)){
-                counter++;
+            if (data[index1] == 'S' && data[index3] == 'M' && data[index2] == 'S' && data[index4] == 'M'){
+                counter ++;
             }
         }
     }
