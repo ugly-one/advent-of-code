@@ -1,8 +1,8 @@
 local DIRECTION = { UP = 1, DOWN = 2, LEFT = 3, RIGHT = 4 }
 local function printMap(map)
-    for a,b in ipairs(map) do
+    for a, b in ipairs(map) do
         local lineString = ""
-        for a,c in ipairs(b) do
+        for a, c in ipairs(b) do
             lineString = lineString .. c
         end
         print(lineString)
@@ -26,7 +26,6 @@ local function checkHit(map, position)
 end
 
 local file = io.open("day6/input.txt", "r")
-
 if file == nil then return 1 end
 
 local line = file:read("l")
@@ -34,11 +33,16 @@ local size = string.len(line)
 local lineNumber = 1
 
 local function withinMap(position)
-    if position.X < 1 then return false
-    elseif position.Y < 1 then return false
-    elseif position.X > size then return false
-    elseif position.Y > size then return false
-    else return true
+    if position.X < 1 then
+        return false
+    elseif position.Y < 1 then
+        return false
+    elseif position.X > size then
+        return false
+    elseif position.Y > size then
+        return false
+    else
+        return true
     end
 end
 
@@ -48,7 +52,7 @@ local guard = {}
 while line do
     map[lineNumber] = {}
     for i = 1, #line do
-        local c = line:sub(i,i)
+        local c = line:sub(i, i)
         map[lineNumber][i] = c
         if c == '^' then
             guard.position = { X = i, Y = lineNumber }
@@ -76,7 +80,7 @@ local function rotate(direction)
 end
 
 local function part1()
-    local fieldsVisited = { [guard.position.X .. '.' .. guard.position.Y ] = 1 }
+    local fieldsVisited = { [guard.position.X .. '.' .. guard.position.Y] = 1 }
     while true do
         local newPosition = move(guard.position, guard.direction)
         if not withinMap(newPosition) then break end
@@ -98,9 +102,12 @@ end
 
 local function copyMap(table)
     local result = {}
-    for k,v in pairs(table) do
-        if type(v) == "string" then result[k] = v
-        else result[k] = copyMap(v) end
+    for k, v in pairs(table) do
+        if type(v) == "string" then
+            result[k] = v
+        else
+            result[k] = copyMap(v)
+        end
     end
     return result
 end
@@ -121,8 +128,11 @@ local function isInLoop(map, guard)
             characterToPrint = '+'
         else
             guard.position = newPosition
-            if guard.direction == DIRECTION.UP or guard.direction == DIRECTION.DOWN then characterToPrint = '|'
-            else characterToPrint = '-' end
+            if guard.direction == DIRECTION.UP or guard.direction == DIRECTION.DOWN then
+                characterToPrint = '|'
+            else
+                characterToPrint = '-'
+            end
         end
         map[guard.position.Y][guard.position.X] = characterToPrint
         if fieldsVisited[newPosition.X .. '.' .. newPosition.Y .. '.' .. guard.direction] == 1 then
@@ -136,8 +146,8 @@ local function isInLoop(map, guard)
 end
 
 local count = 0
-for i=1,size do
-    for j=1,size do
+for i = 1, size do
+    for j = 1, size do
         if guard.position.X == j and guard.position.Y == i then
         elseif map[i][j] == '#' then
         else
