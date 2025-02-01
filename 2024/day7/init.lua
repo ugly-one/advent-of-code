@@ -15,7 +15,7 @@ local function parseLine(line)
     end
 end
 
-local possibleOperands = {'+', '*'}
+local possibleOperands = {'+', '*', '|'}
 
 local function generateOperands(size)
 
@@ -44,6 +44,8 @@ local function evaluate(numbers, operands)
         local nextNumber = numbers[i+1]
         if operand == '+' then sum = sum + nextNumber
         elseif operand == '*' then sum = sum * nextNumber
+        elseif operand == '|' then
+            sum = tonumber( sum .. nextNumber )
         end
     end
     return sum
@@ -72,4 +74,4 @@ while line do
     line = file:read("l")
 end
 
-print(sum)
+print(string.format("%.0f",sum))
