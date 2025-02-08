@@ -1,9 +1,8 @@
 local M = {}
 
-local function getLines(test)
+local function getLines(fileName)
   local str = debug.getinfo(2, "S").source:sub(2)
-  local fileName = "input.txt"
-  if test then fileName = "testInput.txt" end
+  if not fileName then fileName = "input.txt" end
   local path = str:match("(.*/)") .. fileName
   local file = assert(io.open(path, 'r'))
 
