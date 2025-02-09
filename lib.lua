@@ -1,5 +1,11 @@
 local M = {}
 
+local function print(table)
+  vim.api.nvim_command("botright vnew")
+  local buffer = vim.api.nvim_get_current_buf()
+  vim.api.nvim_buf_set_lines(buffer, 0, -1, true, table)
+end
+
 local function getLines(fileName)
   local str = debug.getinfo(2, "S").source:sub(2)
   if not fileName then fileName = "input.txt" end
@@ -15,4 +21,5 @@ local function getLines(fileName)
 end
 
 M.getLines = getLines
+M.print = print
 return M
