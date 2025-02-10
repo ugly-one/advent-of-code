@@ -6,6 +6,14 @@ local function print(table)
   vim.api.nvim_buf_set_lines(buffer, 0, -1, true, table)
 end
 
+local function copy_table(table)
+  local new_table = {}
+  for _, a in ipairs(table) do
+    table.insert(new_table, a)
+  end
+  return new_table
+end
+
 local function getLines(fileName)
   local str = debug.getinfo(2, "S").source:sub(2)
   if not fileName then fileName = "input.txt" end
@@ -22,4 +30,5 @@ end
 
 M.getLines = getLines
 M.print = print
+M.copy_table = copy_table
 return M

@@ -1,7 +1,4 @@
-local file = io.open("day2/input.txt", "r")
-if file == nil then return 1 end
-local line = file:read("l")
-
+local line = require 'lib'.getLines()[1]
 local numbers = {}
 for a in string.gmatch(line, "([0-9]+)") do
   table.insert(numbers, tonumber(a))
@@ -52,9 +49,8 @@ for n = 0, 100 do
     local result = exec(new_table, n, v)
     if result == 19690720 then
       print(100 * n + v)
-      print('sdfsdf')
+      print(n, v)
       return
     end
   end
 end
-print('aaaa')
