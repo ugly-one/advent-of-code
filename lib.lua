@@ -22,13 +22,37 @@ local function getLines(fileName)
 
   local lines = {}
   while true do
-    local line = file:read('l')
+    local line = file:read('*l')
     if not line then return lines end
     table.insert(lines, line)
   end
 end
 
+local function sort(map)
+  local sorted = {}
+  for key, value in pairs(map) do
+    table.insert(sorted, { key = key, value = value })
+  end
+
+  table.sort(sorted, function(a, b)
+    if a.value == b.value then
+      if a.key < b.key then
+        return true
+      else
+        return false
+      end
+    elseif a.value > b.value then
+      return true
+    else
+      return false
+    end
+  end)
+
+  return sorted
+end
+
 M.getLines = getLines
 M.print = print
 M.copy_table = copy_table
+M.sort = sort
 return M
