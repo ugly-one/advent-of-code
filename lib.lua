@@ -6,9 +6,9 @@ local function print(table)
   vim.api.nvim_buf_set_lines(buffer, 0, -1, true, table)
 end
 
-local function copy_table(table)
+local function copy_table(input_table)
   local new_table = {}
-  for _, a in ipairs(table) do
+  for _, a in ipairs(input_table) do
     table.insert(new_table, a)
   end
   return new_table
