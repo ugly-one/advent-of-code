@@ -51,8 +51,26 @@ local function sort(map)
   return sorted
 end
 
+local function to_table(input)
+  local t = {}
+  for i = 1, #input do
+    t[i] = input:sub(i, i)
+  end
+  return t
+end
+
+local function sub(input_table, start, end_)
+  local t = {}
+  for i = start, end_ do
+    table.insert(t, input_table[i])
+  end
+  return t
+end
+
 M.getLines = getLines
 M.print = print
 M.copy_table = copy_table
 M.sort = sort
+M.to_table = to_table
+M.sub = sub
 return M

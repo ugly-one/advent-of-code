@@ -1,22 +1,24 @@
-local data = require 'lib'.getLines()
+local lib = require 'lib'
+local data = lib.getLines()
 
 local function get(line)
   local aba_outside = {}
   local aba_inside = {}
   local window_size = 3
+  local line_table = lib.to_table(line)
   for i = 1, #line do
-    local window = string.sub(line, i, i + window_size - 1)
-    if string.sub(window, 1, 1) == string.sub(window, 3, 3)
-        and not (string.sub(window, 1, 1) == string.sub(window, 2, 2))
-        and not (string.sub(window, 2, 2) == '[' or string.sub(window, 2, 2) == ']') then
+    local window = lib.sub(line_table, i, i + window_size - 1)
+    if window[1] == window[3]
+        and not (window[1] == window[2])
+        and not (window[2] == '[' or window[2] == ']') then
       local within = false
       for k = i - 1, 1, -1 do
         -- check if we have opening bracket
-        local char = string.sub(line, k, k)
+        local char = line_table[k]
         if char == '[' then
           -- check if we have closing bracket
           for l = i + 3, #line do
-            local char = string.sub(line, l, l)
+            local char = line_table[l]
             if char == ']' then
               within = true
               break
@@ -40,7 +42,7 @@ local function supports_ssl(line)
   local result = get(line)
   for _, aba in ipairs(result.outside) do
     for _, bab in ipairs(result.inside) do
-      if string.sub(aba, 1, 1) == string.sub(bab, 2, 2) and string.sub(aba, 2, 2) == string.sub(bab, 1, 1) then
+      if aba[1] == bab[2] and aba[2] == bab[1] then
         return true
       end
     end
