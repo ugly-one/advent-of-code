@@ -55,6 +55,7 @@ for i = 1, #lines do
   end
 end
 
+local outputs = {}
 local new_bots_to_process = {}
 while true do
   for _, bot_nr in ipairs(bots_to_process) do
@@ -72,33 +73,39 @@ while true do
       low_value = bot.content[1]
       high_value = bot.content[2]
     end
-    if (low_value == 17 and high_value == 61) then
-      print('result ', bot_nr)
-      break
-    end
     local low_bot = bots[bot.low_bot]
     local high_bot = bots[bot.high_bot]
     if low_bot then
       table.insert(low_bot.content, low_value)
       if #(low_bot.content) > 1 then
-        print('adding low bot to be processed', low_bot.nr)
         table.insert(new_bots_to_process, low_bot.nr)
       end
     end
     if high_bot then
       table.insert(high_bot.content, high_value)
       if #(high_bot.content) > 1 then
-        print('adding high bot to be processed', high_bot.nr)
         table.insert(new_bots_to_process, high_bot.nr)
       end
     end
+
+    if bot.low_output == 0 then outputs[1] = low_value end
+    if bot.low_output == 1 then outputs[2] = low_value end
+    if bot.low_output == 2 then outputs[3] = low_value end
+    if bot.high_output == 0 then outputs[1] = high_value end
+    if bot.high_output == 1 then outputs[2] = high_value end
+    if bot.high_output == 2 then outputs[3] = high_value end
     bot.content = {}
   end
 
   bots_to_process = new_bots_to_process
   new_bots_to_process = {}
   if #bots_to_process == 0 then
-    print('???')
     break
   end
 end
+
+local result = 1
+for i = 1, #outputs do
+  result = result * outputs[i]
+end
+print(result)
