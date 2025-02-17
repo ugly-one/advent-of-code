@@ -30,25 +30,21 @@ for i = 1, #lines do
       bots[bot_nr] = bot
     end
 
-    local low_output = string.gmatch(line, "low to output (%d+)")
-    low_output = low_output()
+    local low_output = string.match(line, "low to output (%d+)")
     if low_output then
       bot.low_output = tonumber(low_output)
     end
 
-    local high_output = string.gmatch(line, "high to output (%d+)")
-    high_output = high_output()
+    local high_output = string.match(line, "high to output (%d+)")
     if high_output then
       bot.high_output = tonumber(high_output)
     end
-    local high_bot = string.gmatch(line, "high to bot (%d+)")
-    high_bot = high_bot()
+    local high_bot = string.match(line, "high to bot (%d+)")
     if high_bot then
       bot.high_bot = tonumber(high_bot)
     end
 
-    local low_bot = string.gmatch(line, "low to bot (%d+)")
-    low_bot = low_bot()
+    local low_bot = string.match(line, "low to bot (%d+)")
     if low_bot then
       bot.low_bot = tonumber(low_bot)
     end
