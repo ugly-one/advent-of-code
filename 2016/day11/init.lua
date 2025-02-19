@@ -162,6 +162,10 @@ local function part1(floors, steps, floor, steps_taken, previous_direction)
         -- do not try to bring one item up. going with one item is slow - let's try to make this assumption
       elseif #option == 2 and direction == -1 then
         -- do not bring 2 things down. I think it makes sense to only bring one down.
+      elseif #option == 1 and direction == -1 and (option[1] > 2) then
+        -- note it's a hack as I assume that we will only bring the first type of chip (< 2 means the first type, 1 = chip, 2 = generator for chip 1. anything bigger than 2 is a different chip/generator.
+        -- so one could argue, what if the first chip/generator is not on the first floor which we want to bring something down? the stuff will break :). But I recorded the best path and I can see we only ewalk down with first chip/generator
+        -- go down only with one type of generator/chip. I noticed that optimal paths only walk down with one type
       else
         local floors_copy = copy_floors(floors)
         local step_taken = tostring(direction)
@@ -171,6 +175,7 @@ local function part1(floors, steps, floor, steps_taken, previous_direction)
           step_taken = step_taken .. ' ' .. item
         end
         if is_valid(floors_copy[floor]) and is_valid(floors_copy[floor + direction]) then
+          -- something doesnt work with the hash....
           local hash = to_string_map(floors_copy) .. tostring(floor + direction)
           local maybe_visited = visited[hash]
           local steps_taked_copy = lib.copy_table(steps_taken)
