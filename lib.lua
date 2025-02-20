@@ -67,10 +67,22 @@ local function sub(input_table, start, end_)
   return t
 end
 
+local function to_bits(num)
+  -- returns a table of bits, least significant first.
+  local t = {}
+  while num > 0 do
+    local rest = math.fmod(num, 2)
+    t[#t + 1] = rest
+    num = (num - rest) / 2
+  end
+  return t
+end
+
 M.getLines = getLines
 M.print = print
 M.copy_table = copy_table
 M.sort = sort
 M.to_table = to_table
 M.sub = sub
+M.to_bits = to_bits
 return M
