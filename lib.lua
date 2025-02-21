@@ -1,6 +1,6 @@
 local M = {}
 
-local function print(table)
+local function _print(table)
   vim.api.nvim_command("botright vnew")
   local buffer = vim.api.nvim_get_current_buf()
   vim.api.nvim_buf_set_lines(buffer, 0, -1, true, table)
@@ -17,8 +17,30 @@ end
 local function getLines(fileName)
   local str = debug.getinfo(2, "S").source:sub(2)
   if not fileName then fileName = "input.txt" end
-  local path = str:match("(.*/)") .. fileName
-  local file = assert(io.open(path, 'r'))
+
+  local file = 'input.txt'
+  local path = str:match("(.*/)")
+  local construct_input_path = false
+  local get_base_path = true
+  local base_path = ""
+  local input_repo = "advent-of-code-input"
+  local input_path = input_repo
+  for folder in string.gmatch(path, "([^/]+)") do
+    if folder == 'advent-of-code' then
+      construct_input_path = true
+      get_base_path = false
+    else
+      if get_base_path then
+        base_path = base_path .. '/' .. folder
+      end
+
+      if construct_input_path then
+        input_path = input_path .. '/' .. folder
+      end
+    end
+  end
+  local entire_path = base_path .. '/' .. input_path .. '/' .. file
+  local file = assert(io.open(entire_path, 'r'))
 
   local lines = {}
   while true do
@@ -79,7 +101,7 @@ local function to_bits(num)
 end
 
 M.getLines = getLines
-M.print = print
+M.print = _print
 M.copy_table = copy_table
 M.sort = sort
 M.to_table = to_table
