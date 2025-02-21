@@ -14,15 +14,25 @@ local function copy_table(input_table)
   return new_table
 end
 
-local function getLines(fileName)
+local function getLines(file_name)
   local str = debug.getinfo(2, "S").source:sub(2)
-  if not fileName then fileName = "input.txt" end
+  if not file_name then file_name = "input.txt" end
 
-  local file = 'input.txt'
   local path = str:match("(.*/)")
   local construct_input_path = false
   local get_base_path = true
   local base_path = ""
+  if string.sub(str, 1, 1) ~= '/' then
+    -- if the path we have is a relative path then we assume that we have to just move
+    -- one directory to get to the folder where all inputs are
+    -- and from there we can reconstruct the path to the specific input file
+    -- this happens when executing lua directly from terminal.
+    -- the other case happens when lua is run from neovim and since I want to be able to work from
+    -- both places, we have support (hack?) for both
+    construct_input_path = true
+    get_base_path = false
+    base_path = "../"
+  end
   local input_repo = "advent-of-code-input"
   local input_path = input_repo
   for folder in string.gmatch(path, "([^/]+)") do
@@ -39,7 +49,7 @@ local function getLines(fileName)
       end
     end
   end
-  local entire_path = base_path .. '/' .. input_path .. '/' .. file
+  local entire_path = base_path .. '/' .. input_path .. '/' .. file_name
   local file = assert(io.open(entire_path, 'r'))
 
   local lines = {}
@@ -100,6 +110,10 @@ local function to_bits(num)
   return t
 end
 
+local home = os.getenv("HOME")
+package.path = package.path .. ";" .. home .. "/lua/?.lua"
+local md5 = require 'md5'
+M.md5 = md5
 M.getLines = getLines
 M.print = _print
 M.copy_table = copy_table
