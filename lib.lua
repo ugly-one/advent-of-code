@@ -14,6 +14,14 @@ local function copy_table(input_table)
   return new_table
 end
 
+local function to_string(table)
+  local line = ""
+  for i, c in ipairs(table) do
+    line = line .. c
+  end
+  return line
+end
+
 local function getLines(file_name)
   local str = debug.getinfo(2, "S").source:sub(2)
   if not file_name then file_name = "input.txt" end
@@ -121,4 +129,5 @@ M.sort = sort
 M.to_table = to_table
 M.sub = sub
 M.to_bits = to_bits
+M.to_string = to_string
 return M
