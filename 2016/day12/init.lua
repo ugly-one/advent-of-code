@@ -2,31 +2,21 @@ local lib = require 'lib'
 local lines = lib.getLines()
 local instructions = {}
 for i = 1, #lines do
-  local inc = string.match(lines[i], 'inc (%a)')
-  if inc then
-    table.insert(instructions, { type = 'inc', dest = inc })
+  local arg1 = string.match(lines[i], 'inc (%a)')
+  if arg1 then
+    table.insert(instructions, { type = 'inc', arg1 = arg1 })
   end
-  local dec = string.match(lines[i], 'dec (%a)')
-  if dec then
-    table.insert(instructions, { type = 'dec', dest = dec })
+  local arg1 = string.match(lines[i], 'dec (%a)')
+  if arg1 then
+    table.insert(instructions, { type = 'dec', arg1 = arg1 })
   end
-  local value, dest = string.match(lines[i], 'cpy (%-?%d+) (%a)')
-  if value then
-    table.insert(instructions, { type = 'cpy', dest = dest, value = tonumber(value) })
+  local arg1, arg2 = string.match(lines[i], 'cpy (%S+) (%S+)')
+  if arg1 then
+    table.insert(instructions, { type = 'cpy', arg1 = arg1, arg2 = arg2 })
   end
-  local source, dest = string.match(lines[i], 'cpy (%a) (%a)')
-  if source then
-    table.insert(instructions, { type = 'cpy', dest = dest, reg = source })
-  end
-  local value, distance = string.match(lines[i], 'jnz (%a) (%-?%d+)')
-  if value then
-    print(lines[i], value, distance)
-    table.insert(instructions, { type = 'jnz', distance = tonumber(distance), reg = value })
-  end
-
-  local value, distance = string.match(lines[i], 'jnz ([%-?%d+]) ([%-?%d+])')
-  if value then
-    table.insert(instructions, { type = 'jnz', distance = tonumber(distance), value = tonumber(value) })
+  local arg1, arg2 = string.match(lines[i], 'jnz (%S+) (%S+)')
+  if arg1 then
+    table.insert(instructions, { type = 'jnz', arg1 = arg1, arg2 = arg2 })
   end
 end
 
@@ -36,42 +26,72 @@ reg['b'] = 0
 reg['c'] = 1
 reg['d'] = 0
 local position = 1
-while true do
+local count = 30
+while count > 0 do
   local ins = instructions[position]
+  --print('entire code...')
+  --for _, inst in ipairs(instructions) do
+  --  print(inst.type, inst.arg1, inst.arg2)
+  --end
+  --print('-----')
+  --print(ins.type, ins.arg1, ins.arg2)
+  --print(position)
+  --print('registers')
+  --print(reg['a'])
+  --print(reg['b'])
+  --print(reg['c'])
+  --print(reg['d'])
+
   if ins.type == 'inc' then
-    reg[ins.dest] = reg[ins.dest] + 1
+    if reg[ins.arg1] then
+      reg[ins.arg1] = reg[ins.arg1] + 1
+    end
     position = position + 1
   end
   if ins.type == 'dec' then
-    reg[ins.dest] = reg[ins.dest] - 1
+    if reg[ins.arg1] then
+      reg[ins.arg1] = reg[ins.arg1] - 1
+    end
     position = position + 1
   end
   if ins.type == 'cpy' then
-    if ins.value then
-      reg[ins.dest] = ins.value
-    end
-    if ins.reg then
-      reg[ins.dest] = reg[ins.reg]
+    local destination = ins.arg2
+    if reg[destination] then
+      local n = tonumber(ins.arg1)
+      if n then
+        reg[destination] = n
+      else
+        if reg[ins.arg1] then reg[destination] = reg[ins.arg1] end
+      end
     end
     position = position + 1
   end
   if ins.type == 'jnz' then
-    if ins.value then
-      print('jnz by value')
-      if ins.value ~= 0 then
-        position = position + ins.distance
-      else
-        position = position + 1
-      end
+    local distance = nil
+    if tonumber(ins.arg2) then
+      distance = tonumber(ins.arg2)
+    elseif reg[ins.arg2] then
+      distance = reg[ins.arg2]
     end
-    if ins.reg then
-      if reg[ins.reg] ~= 0 then
-        position = position + ins.distance
+
+    if distance == nil then
+      position = position + 1
+    else
+      -- we have distance
+      local check = tonumber(ins.arg1)
+      if check and check ~= 0 then
+        position = position + distance
       else
-        position = position + 1
+        if reg[ins.arg1] and reg[ins.arg1] ~= 0 then
+          position = position + distance
+        else
+          position = position + 1
+        end
       end
     end
   end
+
   if position > #instructions then break end
 end
+
 print(reg['a'])
