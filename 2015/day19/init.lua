@@ -71,14 +71,19 @@ local function part2()
 
   local target_molecule = 'e'
   local min = nil
+  local stats = {} --not sure if this actually helps with performance
   local function find_min(molecule_string, molecule_array, steps)
-    if min ~= nil and steps > min then return end
+    if stats[molecule_string] and stats[molecule_string] <= steps then return end
+    stats[molecule_string] = steps
+    if min ~= nil and steps >= min then return end
     if molecule_string == target_molecule then
       if min == nil or steps < min then
         min = steps
         print(min)
       end
+      return
     end
+    print(molecule_string)
     for _, replacement in ipairs(replacements) do
       local result = try_replace(molecule_string, molecule_array, replacement)
       for _, option in ipairs(result) do
@@ -91,4 +96,5 @@ local function part2()
   print(min)
 end
 
+-- [SLOW]
 part2() -- it prints correct result but never finishes...
