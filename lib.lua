@@ -14,6 +14,14 @@ local function copy_table(input_table)
   return new_table
 end
 
+local function copy_dic(input_table)
+  local new_table = {}
+  for k, v in pairs(input_table) do
+    new_table[k] = v
+  end
+  return new_table
+end
+
 local function to_string(table)
   local line = ""
   for i, c in ipairs(table) do
@@ -130,4 +138,5 @@ M.to_table = to_table
 M.sub = sub
 M.to_bits = to_bits
 M.to_string = to_string
+M.copy_dic = copy_dic
 return M
