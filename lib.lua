@@ -126,6 +126,29 @@ local function to_bits(num)
   return t
 end
 
+--- sums all items in the table (assumes each item is a number)
+--- @param table table
+--- @return number
+local function sum(table)
+  local sum = 0
+  for _, item in ipairs(table) do
+    sum = sum + item
+  end
+  return sum
+end
+
+--- aggregates all items in the table (assumes each item is a number)
+--- by running the action function which takes the given initial value
+--- @param table table
+--- @return number
+local function aggregate(table, action, init)
+  local total = init
+  for _, item in ipairs(table) do
+    total = action(total, item)
+  end
+  return total
+end
+
 local home = os.getenv("HOME")
 package.path = package.path .. ";" .. home .. "/lua/?.lua"
 local md5 = require 'md5'
@@ -139,4 +162,6 @@ M.sub = sub
 M.to_bits = to_bits
 M.to_string = to_string
 M.copy_dic = copy_dic
+M.sum = sum
+M.aggregate = aggregate
 return M
