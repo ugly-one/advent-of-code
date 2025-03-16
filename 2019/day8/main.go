@@ -1,8 +1,8 @@
 package main
 
 import (
+	"advent-of-code/go"
 	"fmt"
-	"os"
 )
 
 type Stat struct {
@@ -69,8 +69,7 @@ func main() {
 	width := 25
 	height := 6
 	size := width * height
-
-	content, _ := os.ReadFile("/home/tgn/Code/advent-of-code-input/2019/day8/input.txt")
+	content := lib.ReadFile("input.txt")
 	content_length := len(content)
 	layers_count := content_length / size
 	part1(layers_count, size, content)
