@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"fmt"
 	"os"
 	"path"
 	"runtime"
@@ -17,7 +16,6 @@ func getInputDir() string {
 	if !ok {
 		panic("No caller information")
 	}
-	fmt.Printf("Filename : %q, Dir : %q\n", filename, path.Dir(filename))
 
 	var a string = ""
 	dir := filename
