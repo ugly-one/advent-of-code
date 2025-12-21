@@ -4,15 +4,9 @@ input = lib.getLines('test.txt')
 
 local result = 0
 
-local map = {}
-
-local rows = #input
-local columns
-for row_index = 1, rows, 1 do
-  local row = lib.to_table(input[row_index])
-  columns = #row
-  table.insert(map, row)
-end
+local map = lib.to_table_2d(input)
+local rows = #map
+local columns = #(map[1])
 
 for row_index = 1, rows, 1 do
   for column_index = 1, columns, 1 do
@@ -27,16 +21,16 @@ for row_index = 1, rows, 1 do
       local x = column_index
       local y = row_index
 
-      inrement(x-1, y-1)
-      inrement(x, y-1)
-      inrement(x+1, y-1)
+      inrement(x - 1, y - 1)
+      inrement(x, y - 1)
+      inrement(x + 1, y - 1)
 
-      inrement(x-1, y)
-      inrement(x+1, y)
+      inrement(x - 1, y)
+      inrement(x + 1, y)
 
-      inrement(x-1, y+1)
-      inrement(x, y+1)
-      inrement(x+1, y+1)
+      inrement(x - 1, y + 1)
+      inrement(x, y + 1)
+      inrement(x + 1, y + 1)
 
       if rolls_count < 4 then
         result = result + 1
