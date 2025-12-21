@@ -6,6 +6,7 @@ local function _print(table)
   vim.api.nvim_buf_set_lines(buffer, 0, -1, true, table)
 end
 
+
 local function copy_table(input_table)
   local new_table = {}
   for _, a in ipairs(input_table) do
@@ -34,6 +35,16 @@ local function to_string(table)
     line = line .. c
   end
   return line
+end
+
+local function _print_2d_table(input)
+  vim.api.nvim_command("botright vnew")
+  local buffer = vim.api.nvim_get_current_buf()
+  local to_print = {}
+  for i=1, #input do
+    table.insert(to_print, to_string(input[i]))
+  end
+  vim.api.nvim_buf_set_lines(buffer, 0, -1, true, to_print)
 end
 
 ---
@@ -194,6 +205,7 @@ local md5 = require 'md5'
 M.md5 = md5
 M.getLines = getLines
 M.print = _print
+M.print_2d_table = _print_2d_table
 M.copy_table = copy_table
 M.sort = sort
 M.to_table = to_table
