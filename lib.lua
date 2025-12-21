@@ -22,14 +22,26 @@ local function copy_dic(input_table)
   return new_table
 end
 
+
+---
+--- Converts given `table` into a string
+---
+---@param table table
+---@return string
 local function to_string(table)
   local line = ""
-  for i, c in ipairs(table) do
+  for _, c in ipairs(table) do
     line = line .. c
   end
   return line
 end
 
+---
+--- Reads content of file specified by `file_name`. 
+--- Returns a table of strings (lines)
+---
+---@param file_name any
+---@return table
 local function getLines(file_name)
   local str = debug.getinfo(2, "S").source:sub(2)
   if not file_name then file_name = "input.txt" end
@@ -99,12 +111,31 @@ local function sort(map)
   return sorted
 end
 
+---
+--- Converts input into a table of strings
+---
+---@param input table
+---@return table
 local function to_table(input)
   local t = {}
   for i = 1, #input do
     t[i] = input:sub(i, i)
   end
   return t
+end
+
+---
+--- Converts a table of strings into a 2D table where each character can be acceesed separately by doing `[y][x]`
+---
+---@param input table
+---@return table
+local function to_table_2d(input)
+  local map = {}
+  for row_index = 1, #input, 1 do
+    local row = to_table(input[row_index])
+    table.insert(map, row)
+  end
+  return map
 end
 
 local function sub(input_table, start, end_)
@@ -115,8 +146,12 @@ local function sub(input_table, start, end_)
   return t
 end
 
+---
+--- Converts number to a table representation of its bits (least significant first).
+---
+--- @param num number
+--- @return table
 local function to_bits(num)
-  -- returns a table of bits, least significant first.
   local t = {}
   while num > 0 do
     local rest = math.fmod(num, 2)
@@ -126,7 +161,9 @@ local function to_bits(num)
   return t
 end
 
---- sums all items in the table (assumes each item is a number)
+---
+--- Sums all items in the table (assumes each item is a number)
+---
 --- @param table table
 --- @return number
 local function sum(table)
@@ -137,8 +174,10 @@ local function sum(table)
   return sum
 end
 
---- aggregates all items in the table (assumes each item is a number)
+---
+--- Aggregates all items in the table (assumes each item is a number)
 --- by running the action function which takes the given initial value
+---
 --- @param table table
 --- @return number
 local function aggregate(table, action, init)
@@ -158,6 +197,7 @@ M.print = _print
 M.copy_table = copy_table
 M.sort = sort
 M.to_table = to_table
+M.to_table_2d = to_table_2d
 M.sub = sub
 M.to_bits = to_bits
 M.to_string = to_string
