@@ -15,7 +15,7 @@ for _, line in ipairs(input) do
   else
     if processing_fresh then
       local start, _end = string.match(line, '(%d+)-(%d+)')
-      table.insert(fresh_ranges, { start = tonumber(start), _end = tonumber(_end) })
+      table.insert(fresh_ranges, { start = tonumber(start), _end = tonumber(_end), deleted = false })
     else
       table.insert(available, tonumber(line))
     end
@@ -25,20 +25,55 @@ end
 -- vim.print(fresh_ranges)
 -- vim.print(available)
 
-local result = 0
+local result_part1 = 0
 
 for _, ingredient in ipairs(available) do
-  local is_fresh = false
   for _, fresh_range in ipairs(fresh_ranges) do
-    if ingredient >= fresh_range.start and ingredient <=fresh_range._end then
-      is_fresh = true
-      result = result + 1
+    if ingredient >= fresh_range.start and ingredient <= fresh_range._end then
+      result_part1 = result_part1 + 1
       break
     end
   end
-  -- print(ingredient, ' fresh?:', is_fresh)
 end
 
 
-print('result:', result)
-vim.fn.setreg('+', result)
+print('result:', result_part1)
+vim.fn.setreg('+', result_part1)
+
+for current_range_index, current_range in ipairs(fresh_ranges) do
+  for index, range in ipairs(fresh_ranges) do
+    if current_range_index == index then goto continue end
+
+    if range.deleted == true then goto continue end
+
+    if current_range.start <= range.start and current_range._end >= range._end then
+      -- range is within current_range
+      range.start = current_range.start
+      range._end = current_range._end
+      current_range.deleted = true
+    elseif current_range.start >= range.start and current_range._end <= range._end then
+      -- range entirely encapsulates current_range
+      current_range.deleted = true
+    elseif current_range.start >= range.start and current_range.start <= range.start and current_range._end >= range._end then
+      range._end = current_range._end
+      current_range.deleted = true
+    elseif current_range.start <= range.start and current_range._end >= range.start and current_range._end <= current_range._end then
+      if current_range.start < range.start then
+        range.start = current_range.start
+      end
+      current_range.deleted = true
+    end
+    ::continue::
+  end
+end
+
+local result_part2 = 0
+for _, range in ipairs(fresh_ranges) do
+  if range.deleted then goto continue2 end
+
+  result_part2 = result_part2 + range._end - range.start + 1
+  ::continue2::
+end
+
+vim.print(result_part2)
+vim.fn.setreg('+', result_part2)
