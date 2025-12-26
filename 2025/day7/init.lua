@@ -17,22 +17,7 @@ for x = 1, #first_line do
   if char == 'S' then beam_x = x end
 end
 
-map[2][beam_x] = '|'
-
-local function simulate(step)
-  local row = map[step]
-  for x = 1, #row do
-    if row[x] == '|' and map[step + 1][x] == '^' then
-      map[step + 1][x - 1] = '|'
-      map[step + 1][x + 1] = '|'
-      result = result + 1
-    elseif row[x] == '|' then
-      map[step + 1][x] = '|'
-    end
-  end
-end
-
-local function print_map()
+local function print_map(map)
   for row = 1, #map do
     local line = ''
     for column = 1, #map[row] do
@@ -41,6 +26,44 @@ local function print_map()
     vim.print(line)
   end
 end
+
+local function copy()
+  local copy_table = {}
+  for row = 1, #map do
+    local line = {}
+    for column = 1, #map[row] do
+      if map[row][column] == '|' then
+        table.insert(line, 1)
+      else
+        table.insert(line, 0)
+      end
+    end
+
+    table.insert(copy_table, line)
+  end
+  return copy_table
+end
+
+map[2][beam_x] = '|'
+local copy = copy()
+
+local result = 1
+local function simulate(step)
+  local row = map[step]
+  for x = 1, #row do
+    if row[x] == '|' and map[step + 1][x] == '^' then
+      result = result + copy[step][x]
+      map[step + 1][x - 1] = '|'
+      map[step + 1][x + 1] = '|'
+      copy[step + 1][x - 1] = copy[step][x] + copy[step + 1][x - 1]
+      copy[step + 1][x + 1] = copy[step][x] + copy[step + 1][x + 1]
+    elseif row[x] == '|' then
+      map[step + 1][x] = '|'
+      copy[step + 1][x] = copy[step][x] + copy[step + 1][x]
+    end
+  end
+end
+
 
 local step = 2
 while step < max_y - 1 do
