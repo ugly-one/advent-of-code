@@ -1,11 +1,20 @@
 local M = {}
 
-local function _print(table)
+--- Prints in a new buffer (vertical split) the content of the table
+---@param input table
+local function _print(input)
   vim.api.nvim_command("botright vnew")
+  vim.api.nvim_command("setlocal buftype=nofile") -- I dont want to be bothered with 'unsaved buffer' warning
   local buffer = vim.api.nvim_get_current_buf()
-  vim.api.nvim_buf_set_lines(buffer, 0, -1, true, table)
+  local lines = {}
+  for _, v in ipairs(input) do
+    local inspected = vim.inspect(v)
+    for line in inspected:gmatch("([^\n]+)") do
+      table.insert(lines, line)
+    end
+  end
+  vim.api.nvim_buf_set_lines(buffer, 0, -1, true, lines)
 end
-
 
 local function copy_table(input_table)
   local new_table = {}
@@ -35,16 +44,6 @@ local function to_string(table)
     line = line .. c
   end
   return line
-end
-
-local function _print_2d_table(input)
-  vim.api.nvim_command("botright vnew")
-  local buffer = vim.api.nvim_get_current_buf()
-  local to_print = {}
-  for i=1, #input do
-    table.insert(to_print, to_string(input[i]))
-  end
-  vim.api.nvim_buf_set_lines(buffer, 0, -1, true, to_print)
 end
 
 ---
@@ -205,7 +204,6 @@ local md5 = require 'md5'
 M.md5 = md5
 M.getLines = getLines
 M.print = _print
-M.print_2d_table = _print_2d_table
 M.copy_table = copy_table
 M.sort = sort
 M.to_table = to_table
