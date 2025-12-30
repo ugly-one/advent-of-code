@@ -1,11 +1,19 @@
 local M = {}
 
---- Prints in a new buffer (vertical split) the content of the table
+--- Prints a table of strings in a new buffer (vertical split)
 ---@param input table
-local function _print(input)
+local function _print_string_array(input)
   vim.api.nvim_command("botright vnew")
   vim.api.nvim_command("setlocal buftype=nofile") -- I dont want to be bothered with 'unsaved buffer' warning
   local buffer = vim.api.nvim_get_current_buf()
+  vim.api.nvim_buf_set_lines(buffer, 0, -1, true, input)
+end
+
+--- Prints a table of data structure in a new buffer (vertical split).
+--- Useful if you have [ { x = 1, y = 2 }, { x = 4, y = 1 } } or something like that
+--- The data will be converted to bunch of strings in order to show in the buffer
+---@param input table
+local function _print(input)
   local lines = {}
   for _, v in ipairs(input) do
     local inspected = vim.inspect(v)
@@ -13,7 +21,8 @@ local function _print(input)
       table.insert(lines, line)
     end
   end
-  vim.api.nvim_buf_set_lines(buffer, 0, -1, true, lines)
+
+  _print_string_array(lines)
 end
 
 local function copy_table(input_table)
@@ -204,6 +213,7 @@ local md5 = require 'md5'
 M.md5 = md5
 M.getLines = getLines
 M.print = _print
+M.print_strings_array = _print_string_array
 M.copy_table = copy_table
 M.sort = sort
 M.to_table = to_table
