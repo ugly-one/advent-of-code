@@ -207,6 +207,18 @@ local function aggregate(table, action, init)
   return total
 end
 
+local function clear_log()
+  local f = io.open("debug_log.txt", "w+")
+  f:write("\n")
+  f:close()
+end
+
+local function log_to_file(msg)
+  local f = io.open("debug_log.txt", "a")
+  f:write(msg .. "\n")
+  f:close()
+end
+
 local home = os.getenv("HOME")
 package.path = package.path .. ";" .. home .. "/lua/?.lua"
 local md5 = require 'md5'
@@ -224,4 +236,6 @@ M.to_string = to_string
 M.copy_dic = copy_dic
 M.sum = sum
 M.aggregate = aggregate
+M.clear_log = clear_log
+M.log_to_file = log_to_file
 return M
